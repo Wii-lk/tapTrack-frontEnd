@@ -299,7 +299,7 @@ const teacherService = {
             
             // Add the PUT method override for Laravel
             // This assumes teacherData is already a FormData object
-            teacherData.append('_method', 'PUT');
+            teacherData.append('_method', 'POST');
 
             const response = await fetch(`${API_BASE_URL}/staff/${id}`, {
                 method: 'POST', // Use POST for multipart/form-data updates
