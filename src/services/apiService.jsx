@@ -1,32 +1,35 @@
 const API_BASE_URL = 'http://localhost:8000/api';
 
-// Temporary login credentials for testing (REMOVE IN PRODUCTION)
+// Updated temporary credentials to use 'username'
 const TEMP_CREDENTIALS = {
-  email: 'admin@school.com',
+  username: 'admin',
   password: 'admin123',
 };
 
 // Set to true to use temporary credentials, false to use real API
-const USE_TEMP_LOGIN = true;
+const USE_TEMP_LOGIN = false;
 
 const apiService = {
-  login: async (email, password) => {
+  // Changed parameter from 'email' to 'username'
+  login: async (username, password) => {
     // TEMPORARY LOGIN - Remove this when backend is ready
     if (USE_TEMP_LOGIN) {
       return new Promise((resolve, reject) => {
         setTimeout(() => {
-          if (email === TEMP_CREDENTIALS.email && password === TEMP_CREDENTIALS.password) {
+          // Updated mock check to use 'username'
+          if (username === TEMP_CREDENTIALS.username && password === TEMP_CREDENTIALS.password) {
             resolve({
               user: {
                 id: 1,
                 name: 'Admin User',
-                email: email,
+                email: 'admin@school.com',
+                username: username, // Added username to mock user
                 role: 'admin',
               },
               token: 'temporary-token-12345',
             });
           } else {
-            reject(new Error('Invalid email or password'));
+            reject(new Error('Invalid username or password'));
           }
         }, 1000); // Simulate network delay
       });
@@ -40,9 +43,10 @@ const apiService = {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
         },
-        body: JSON.stringify({ "username/mail": email, password }),
+        // Use the 'username' parameter in the body
+        body: JSON.stringify({ "username": username, password }),
       });
-
+      console.log(JSON.stringify({ "username": username, password }));
       const data = await response.json();
 
       if (!response.ok) {
@@ -63,7 +67,9 @@ const apiService = {
     if (USE_TEMP_LOGIN) {
       return new Promise((resolve, reject) => {
         setTimeout(() => {
-          if (email === TEMP_CREDENTIALS.email) {
+          // Note: Forgot Password might still use email.
+          // We are just checking against a mock email here.
+          if (email === 'admin@school.com') { 
             resolve({
               message: 'Password reset link sent to your email',
             });

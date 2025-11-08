@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Mail, Lock } from 'lucide-react';
+import { User, Lock } from 'lucide-react'; // Changed from Mail to User
 import Input from '../common/Input';
 import Button from '../common/Button';
 import Alert from '../common/Alert';
@@ -9,7 +9,7 @@ import apiService from '../../services/apiService';
 const LoginForm = ({ onForgotPassword }) => {
   const { login } = useAuth();
   const [formData, setFormData] = useState({
-    email: '',
+    username: '', // Changed from 'email'
     password: '',
   });
   const [errors, setErrors] = useState({});
@@ -19,11 +19,9 @@ const LoginForm = ({ onForgotPassword }) => {
   const validateForm = () => {
     const newErrors = {};
 
-    // Email validation
-    if (!formData.email) {
-      newErrors.email = 'Email is required';
-    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = 'Email is invalid';
+    // Updated validation for 'username'
+    if (!formData.username) {
+      newErrors.username = 'Username is required';
     }
 
     // Password validation
@@ -69,7 +67,8 @@ const LoginForm = ({ onForgotPassword }) => {
     setApiError('');
 
     try {
-      const response = await apiService.login(formData.email, formData.password);
+      // Pass 'formData.username' to the login service
+      const response = await apiService.login(formData.username, formData.password);
       // Expected response: { user: {...}, token: '...' }
       login(response.user, response.token);
     } catch (error) {
@@ -89,16 +88,19 @@ const LoginForm = ({ onForgotPassword }) => {
         />
       )}
       
+      {/* Updated Input component for Username */}
       <Input
-        label="Email Address"
-        type="email"
-        name="email"
-        value={formData.email}
+        label="Username"
+        type="text"
+        name="username"
+        value={formData.username}
         onChange={handleChange}
-        error={errors.email}
-        placeholder="admin@school.com"
-        icon={Mail}
+        error={errors.username}
+        placeholder="Enter your username"
+        icon={User} // Changed icon
       />
+
+      
 
       <Input
         label="Password"

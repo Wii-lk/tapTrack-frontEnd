@@ -47,30 +47,42 @@ const TeacherManagement = () => {
   }, [currentPage, filters]);
 
   const fetchTeachers = async () => {
-  try {
-    setLoading(true);
-    setError('');
-    const response = await teacherService.getTeachers(currentPage, 10, filters);
+    try {
+      setLoading(true);
+      setError('');
+      const response = await teacherService.getTeachers(currentPage, 10, filters);
 
-    // Use the correct property
-    setTeachers(response.data.teachers || []); 
-    setPagination(response.data.pagination || {});
-  } catch (err) {
-    setError(err.message || 'Failed to fetch teachers');
-  } finally {
-    setLoading(false);
-  }
-};
-
+      setTeachers(response.data.teachers || []); 
+      setPagination(response.data.pagination || {});
+    } catch (err) {
+      setError(err.message || 'Failed to fetch teachers');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleAddNew = () => {
     setSelectedTeacher(null);
     setIsFormModalOpen(true);
   };
 
-  const handleEdit = (teacher) => {
-    setSelectedTeacher(teacher);
-    setIsFormModalOpen(true);
+  // UPDATED: Fetch full teacher details when editing
+  const handleEdit = async (teacher) => {
+    try {
+      setFormLoading(true);
+      setError('');
+      
+      // Fetch full teacher details by ID
+      const response = await teacherService.getTeacherById(teacher.id);
+      
+      // Set the full teacher data
+      setSelectedTeacher(response.data);
+      setIsFormModalOpen(true);
+    } catch (err) {
+      setError(err.message || 'Failed to fetch teacher details');
+    } finally {
+      setFormLoading(false);
+    }
   };
 
   const handleDelete = (teacher) => {
@@ -192,12 +204,18 @@ const TeacherManagement = () => {
         title={selectedTeacher ? 'Edit Teacher' : 'Add New Teacher'}
         size="lg"
       >
-        <TeacherForm
-          teacher={selectedTeacher}
-          onSubmit={handleFormSubmit}
-          onCancel={() => setIsFormModalOpen(false)}
-          loading={formLoading}
-        />
+        {formLoading && !selectedTeacher ? (
+          <div className="flex justify-center items-center py-8">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+          </div>
+        ) : (
+          <TeacherForm
+            teacher={selectedTeacher}
+            onSubmit={handleFormSubmit}
+            onCancel={() => setIsFormModalOpen(false)}
+            loading={formLoading}
+          />
+        )}
       </Modal>
 
       {/* Delete Confirmation Modal */}

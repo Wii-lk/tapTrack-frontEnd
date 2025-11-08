@@ -13,7 +13,7 @@ import DeleteConfirmModal from '../components/students/DeleteConfirmModal';
 import studentService from '../services/studentService';
 
 const StudentManagement = () => {
-  const navigate = useNavigate(); // ✅ useNavigate for navigation
+  const navigate = useNavigate();
 
   const [students, setStudents] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -36,14 +36,16 @@ const StudentManagement = () => {
   });
 
   // Filters
+  // *** CORRECTED: State names now match the API ***
   const [filters, setFilters] = useState({
     search: '',
-    class: '',
-    section: '',
-    status: '',
+    grade_id: '',
+    is_active: '',
   });
 
   useEffect(() => {
+    // This effect is correct. It runs when 'currentPage' or 'filters' change.
+    // Since search updates 'filters', it will trigger this call.
     fetchStudents();
   }, [currentPage, filters]);
 
@@ -51,6 +53,7 @@ const StudentManagement = () => {
     try {
       setLoading(true);
       setError('');
+      // The 'filters' object now contains the correct keys
       const response = await studentService.getStudents(currentPage, 10, filters);
       setStudents(response.data.students);
       setPagination(response.data.pagination);
@@ -77,7 +80,6 @@ const StudentManagement = () => {
   };
 
   const handleView = (student) => {
-    // ✅ Navigate to student details page
     navigate(`/students/${student.id}`);
   };
 
@@ -124,11 +126,11 @@ const StudentManagement = () => {
   };
 
   const handleResetFilters = () => {
+    // *** CORRECTED: Reset matches the new state structure ***
     setFilters({
       search: '',
-      class: '',
-      section: '',
-      status: '',
+      grade_id: '',
+      is_active: '',
     });
     setCurrentPage(1);
   };
@@ -147,10 +149,11 @@ const StudentManagement = () => {
         </div>
         <Button
           onClick={handleAddNew}
-          className="w-[140px]" // sets fixed width
+          className="w-[10px]"
+          size="small"
         >
-          <UserPlus size={20} className="mr-2 inline" />  
-          Add New Student
+          <UserPlus size={15} className="mr-2 inline" />  
+           New Student
         </Button>
 
       </div>

@@ -5,58 +5,80 @@ import Input from '../common/Input';
 import Select from '../common/Select';
 import TextArea from '../common/TextArea';
 
-const TeacherForm = ({ teacher, onSubmit, onCancel, loading }) => {
-  const [formData, setFormData] = useState({
-    first_name: '',
-    last_name: '',
-    username: '',
-    password: '',
-    gender: '',
-    date_of_birth: '',
-    address: '',
-    photo: null,
-    unique_no: '',
-    email: '',
-    phone_no: '',
-    position: '',
-    qualification: '',
-    basic_salary: '',
-    parent_staff_id: '',
-    hire_date: '',
-    is_active: true,
-  });
+// --- ADDED ---
+// Helper to get today's date in YYYY-MM-DD format
+const getTodayDate = () => {
+  const today = new Date();
+  const year = today.getFullYear();
+  const month = String(today.getMonth() + 1).padStart(2, '0'); // Months are 0-indexed
+  const day = String(today.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
 
+// Helper to create the initial empty state
+const getInitialState = () => ({
+  first_name: '',
+  last_name: '',
+  username: '',
+  password: '',
+  gender: '',
+  date_of_birth: '',
+  address: '',
+  photo: null, // This will hold the File object
+  unique_no: '',
+  email: '',
+  phone_no: '',
+  position: '',
+  qualification: '',
+  basic_salary: '',
+  parent_staff_id: '',
+  hire_date: getTodayDate(), // <-- MODIFIED: Prefills today's date
+  is_active: 1,
+});
+
+const TeacherForm = ({ teacher, onSubmit, onCancel, loading }) => {
+  // The form's internal state uses snake_case, matching the API
+  const [formData, setFormData] = useState(getInitialState());
   const [photoPreview, setPhotoPreview] = useState('');
 
   useEffect(() => {
     if (teacher) {
+      // This runs when you're editing an existing teacher
       setFormData({
-        first_name: teacher.first_name || '',
-        last_name: teacher.last_name || '',
+        first_name: teacher.firstName || '',
+        last_name: teacher.lastName || '',
         username: teacher.username || '',
-        password: '',
+        password: '', // Always blank on edit
         gender: teacher.gender || '',
         date_of_birth: teacher.date_of_birth || '',
         address: teacher.address || '',
-        photo: null,
+        photo: null, // Always reset file input
         unique_no: teacher.unique_no || '',
         email: teacher.email || '',
-        phone_no: teacher.phone_no || '',
-        position: teacher.position || '',
+        phone_no: teacher.phone || '',
+        position: teacher.designation || '',
         qualification: teacher.qualification || '',
         basic_salary: teacher.basic_salary || '',
         parent_staff_id: teacher.parent_staff_id || '',
-        hire_date: teacher.hire_date || '',
-        is_active: teacher.is_active ?? true,
+        hire_date: teacher.hire_date || '', // This will override the default
+        // --- THIS IS THE FIX ---
+        // Convert the incoming boolean (true/false) to a number (1/0)
+        is_active: teacher.is_active === false ? 0 : 1,
       });
+      setPhotoPreview(''); // Clear preview on edit
+    } else {
+      // This runs when you're adding a new teacher (will have today's date)
+      setFormData(getInitialState());
+      setPhotoPreview('');
     }
-  }, [teacher]);
+  }, [teacher]); // Rerun this logic when the teacher prop changes
 
+  
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
     setFormData(prev => ({
       ...prev,
-      [name]: type === 'checkbox' ? checked : value,
+      [name]: type === 'checkbox' ? (checked ? 1 : 0) : value,
     }));
   };
 
@@ -70,11 +92,17 @@ const TeacherForm = ({ teacher, onSubmit, onCancel, loading }) => {
         setPhotoPreview(reader.result);
       };
       reader.readAsDataURL(file);
+    } else {
+      // Clear preview if no file is selected
+      setFormData(prev => ({ ...prev, photo: null }));
+      setPhotoPreview('');
     }
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    // Pass the plain JavaScript state object (snake_case) to the parent.
+    // The service layer will handle formatting it as JSON or FormData.
     onSubmit(formData);
   };
 
@@ -178,13 +206,17 @@ const TeacherForm = ({ teacher, onSubmit, onCancel, loading }) => {
           </h3>
         </div>
 
-        <Input
-          label="Unique ID *"
-          name="unique_no"
-          value={formData.unique_no}
-          onChange={handleChange}
-          required
-        />
+        {/* --- MODIFIED: Conditionally render Unique ID --- */}
+        {/* This field will ONLY appear in edit mode (when 'teacher' prop exists) */}
+        {!!teacher && (
+          <Input
+            label="Unique ID"
+            name="unique_no"
+            value={formData.unique_no}
+            onChange={handleChange}
+            disabled={true} // Unique ID shouldn't be editable
+          />
+        )}
 
         <Input
           label="Email *"

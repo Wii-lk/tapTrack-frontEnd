@@ -16,21 +16,23 @@ const TeacherDetails = () => {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    fetchTeacher();
-  }, [id]);
+    // Renamed function to be more descriptive
+    const loadTeacherDetails = async () => {
+      try {
+        setLoading(true);
+        setError('');
+        // This is your service call
+        const response = await teacherService.getTeacherById(id); 
+        setTeacher(response.data);
+      } catch (err) {
+        setError(err.message || 'Failed to fetch teacher details');
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  const fetchTeacher = async () => {
-    try {
-      setLoading(true);
-      setError('');
-      const response = await teacherService.getTeacher(id);
-      setTeacher(response.data);
-    } catch (err) {
-      setError(err.message || 'Failed to fetch teacher details');
-    } finally {
-      setLoading(false);
-    }
-  };
+    loadTeacherDetails();
+  }, [id]); // Dependency array is correct
 
   const handleDownloadReport = () => {
     // Implement report download functionality
@@ -84,7 +86,8 @@ const TeacherDetails = () => {
           </Button>
           <div>
             <h2 className="text-2xl font-bold text-gray-800">
-              {teacher.first_name} {teacher.last_name}
+              {/* CHANGED: first_name -> firstName, last_name -> lastName */}
+              {teacher.firstName} {teacher.lastName}
             </h2>
             <p className="text-gray-600">Teacher Details</p>
           </div>
@@ -92,6 +95,7 @@ const TeacherDetails = () => {
         <Button
           onClick={handleDownloadReport}
           className="flex items-center gap-2"
+          size="small"
         >
           <Download size={16} />
           Download Report
@@ -112,7 +116,8 @@ const TeacherDetails = () => {
                 <div>
                   <p className="text-sm text-gray-500">Full Name</p>
                   <p className="font-medium">
-                    {teacher.first_name} {teacher.last_name}
+                    {/* CHANGED: first_name -> firstName, last_name -> lastName */}
+                    {teacher.firstName} {teacher.lastName}
                   </p>
                 </div>
               </div>
@@ -120,6 +125,7 @@ const TeacherDetails = () => {
                 <Mail size={18} className="text-gray-400" />
                 <div>
                   <p className="text-sm text-gray-500">Email</p>
+                  {/* (email was already correct) */}
                   <p className="font-medium">{teacher.email}</p>
                 </div>
               </div>
@@ -127,7 +133,8 @@ const TeacherDetails = () => {
                 <Phone size={18} className="text-gray-400" />
                 <div>
                   <p className="text-sm text-gray-500">Phone</p>
-                  <p className="font-medium">{teacher.phone_no}</p>
+                  {/* CHANGED: phone_no -> phone */}
+                  <p className="font-medium">{teacher.phone}</p>
                 </div>
               </div>
               {teacher.date_of_birth && (
@@ -136,6 +143,7 @@ const TeacherDetails = () => {
                   <div>
                     <p className="text-sm text-gray-500">Date of Birth</p>
                     <p className="font-medium">
+                      {/* (date_of_birth was already correct) */}
                       {new Date(teacher.date_of_birth).toLocaleDateString()}
                     </p>
                   </div>
@@ -146,6 +154,7 @@ const TeacherDetails = () => {
                   <User size={18} className="text-gray-400" />
                   <div>
                     <p className="text-sm text-gray-500">Gender</p>
+                    {/* (gender was already correct) */}
                     <p className="font-medium capitalize">{teacher.gender}</p>
                   </div>
                 </div>
@@ -155,6 +164,7 @@ const TeacherDetails = () => {
                   <MapPin size={18} className="text-gray-400 mt-0.5" />
                   <div>
                     <p className="text-sm text-gray-500">Address</p>
+                    {/* (address was already correct) */}
                     <p className="font-medium">{teacher.address}</p>
                   </div>
                 </div>
@@ -170,15 +180,18 @@ const TeacherDetails = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <p className="text-sm text-gray-500">Position</p>
-                <p className="font-medium">{teacher.position || 'Not specified'}</p>
+                {/* CHANGED: position -> designation */}
+                <p className="font-medium">{teacher.designation || 'Not specified'}</p>
               </div>
               <div>
                 <p className="text-sm text-gray-500">Unique ID</p>
+                {/* (unique_no was already correct) */}
                 <p className="font-medium">{teacher.unique_no}</p>
               </div>
               <div>
                 <p className="text-sm text-gray-500">Basic Salary</p>
                 <p className="font-medium">
+                  {/* (basic_salary was already correct) */}
                   LKR {teacher.basic_salary?.toLocaleString()}
                 </p>
               </div>
@@ -186,6 +199,7 @@ const TeacherDetails = () => {
                 <div>
                   <p className="text-sm text-gray-500">Hire Date</p>
                   <p className="font-medium">
+                    {/* (hire_date was already correct) */}
                     {new Date(teacher.hire_date).toLocaleDateString()}
                   </p>
                 </div>
@@ -193,6 +207,7 @@ const TeacherDetails = () => {
               {teacher.qualification && (
                 <div className="md:col-span-2">
                   <p className="text-sm text-gray-500">Qualifications</p>
+                  {/* (qualification was already correct) */}
                   <p className="font-medium">{teacher.qualification}</p>
                 </div>
               )}
@@ -200,6 +215,7 @@ const TeacherDetails = () => {
                 <p className="text-sm text-gray-500">Status</p>
                 <span
                   className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                    // (is_active was already correct)
                     teacher.is_active
                       ? 'bg-green-100 text-green-800'
                       : 'bg-red-100 text-red-800'
@@ -214,7 +230,11 @@ const TeacherDetails = () => {
 
         {/* Sidebar - Additional Information */}
         <div className="space-y-6">
-          {/* Quick Stats */}
+          {/* COMMENT: As you requested, this "Quick Stats" section is missing
+            API data. The 'getTeacherById' endpoint doesn't return this info.
+            Your current code correctly shows placeholders ('-').
+            You will need a separate API endpoint to get this data.
+          */}
           <Card>
             <h3 className="text-lg font-medium text-gray-900 mb-4">
               Quick Stats
@@ -235,7 +255,10 @@ const TeacherDetails = () => {
             </div>
           </Card>
 
-          {/* Reporting To */}
+          {/* COMMENT: This "Reporting To" card will correctly show/hide.
+            The `parent_staff` object in your API (when not null) will also
+            use camelCase, so I've updated it here.
+          */}
           {teacher.parent_staff && (
             <Card>
               <h3 className="text-lg font-medium text-gray-900 mb-4">
@@ -247,7 +270,8 @@ const TeacherDetails = () => {
                 </div>
                 <div>
                   <p className="font-medium">
-                    {teacher.parent_staff.first_name} {teacher.parent_staff.last_name}
+                    {/* CHANGED: first_name -> firstName, last_name -> lastName */}
+                    {teacher.parent_staff.firstName} {teacher.parent_staff.lastName}
                   </p>
                   <p className="text-sm text-gray-500">Supervisor</p>
                 </div>

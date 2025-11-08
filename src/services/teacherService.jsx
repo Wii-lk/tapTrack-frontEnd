@@ -1,7 +1,7 @@
 const API_BASE_URL = 'http://localhost:8000/api';
 
 // Set to true to use mock data instead of real API
-const USE_MOCK_DATA = true;
+const USE_MOCK_DATA = false;
 
 // Mock Teachers Data
 const MOCK_TEACHERS = [
@@ -18,6 +18,8 @@ const MOCK_TEACHERS = [
         basic_salary: 50000.00, 
         date_of_birth: '1985-01-01',
         qualification: 'B.Sc Mathematics',
+        gender: 'male',
+        address: '123, Galle Road, Colombo 03',
     },
     {
         id: 2,
@@ -32,6 +34,8 @@ const MOCK_TEACHERS = [
         basic_salary: 55000.00,
         date_of_birth: '1988-03-12',
         qualification: 'M.A English',
+        gender: 'female',
+        address: '456, Kandy Road, Colombo 07',
     },
     {
         id: 3,
@@ -46,32 +50,41 @@ const MOCK_TEACHERS = [
         basic_salary: 48000.00,
         date_of_birth: '1990-06-20',
         qualification: 'B.Sc Chemistry',
+        gender: 'male',
+        address: '789, Negombo Road, Wattala',
     },
 ];
 
 
 /**
  * Helper function to normalize API staff data fields to frontend teacher fields.
+ * (API: snake_case -> FE: camelCase)
  */
 const normalizeStaffToTeacher = (staff) => {
     if (!staff) return null;
     return {
         id: staff.id,
         user_id: staff.user_id,
-        firstName: staff.first_name,
+        firstName: staff.first_name, // API 'first_name' becomes FE 'firstName'
         lastName: staff.last_name,
         fullName: `${staff.first_name || ''} ${staff.last_name || ''}`.trim(),
         email: staff.email,
         phone: staff.phone_no, 
         designation: staff.position,
         status: staff.is_active ? 'active' : 'inactive', 
-        unique_no: staff.unique_no,
-        basic_salary: staff.basic_salary,
-        date_of_birth: staff.date_of_birth,
-        qualification: staff.qualification,
-        hire_date: staff.hire_date,
-        parent_staff_id: staff.parent_staff_id,
-        parent_staff: staff.parent_staff,
+        
+        // Pass through all API fields for the form
+        unique_no: staff.unique_no,
+        basic_salary: staff.basic_salary,
+        date_of_birth: staff.date_of_birth,
+        qualification: staff.qualification,
+        hire_date: staff.hire_date,
+        parent_staff_id: staff.parent_staff_id,
+        parent_staff: staff.parent_staff,
+        gender: staff.gender,
+        address: staff.address,
+        is_active: staff.is_active,
+        username: staff.username, // Assuming username comes from API
     };
 };
 
@@ -84,6 +97,7 @@ const teacherService = {
                 setTimeout(() => {
                     let filteredStaff = [...MOCK_TEACHERS];
 
+                    // Filtering logic
                     if (filters.search) {
                         const searchLower = filters.search.toLowerCase();
                         filteredStaff = filteredStaff.filter(
@@ -101,6 +115,7 @@ const teacherService = {
                         filteredStaff = filteredStaff.filter((t) => t.is_active === isActiveBool);
                     }
 
+                    // Pagination
                     const total = filteredStaff.length;
                     const start = (page - 1) * perPage;
                     const end = start + perPage;
@@ -154,7 +169,7 @@ const teacherService = {
     getTeacherById: async (id) => {
         if (USE_MOCK_DATA) {
             return new Promise((resolve, reject) => {
-              setTimeout(() => {
+                setTimeout(() => {
                     const staff = MOCK_TEACHERS.find((t) => t.id === parseInt(id));
                     if (staff) {
                         const teacher = normalizeStaffToTeacher(staff);
@@ -177,6 +192,7 @@ const teacherService = {
             });
 
             const data = await response.json();
+console.log(data);
             if (!response.ok) throw new Error(data.message || 'Failed to fetch teacher');
             
             data.data = normalizeStaffToTeacher(data.data);
@@ -188,23 +204,15 @@ const teacherService = {
 
     // Create new teacher/staff
     createTeacher: async (teacherData) => {
-        // teacherData is expected to be a plain JavaScript object from the form
+        // teacherData is a plain JS object from the form state (snake_case)
         if (USE_MOCK_DATA) {
             return new Promise((resolve) => {
                 setTimeout(() => {
                     const newStaff = {
                         id: MOCK_TEACHERS.length + 1,
                         user_id: 200 + MOCK_TEACHERS.length,
-                        unique_no: teacherData.unique_no || `RFID${MOCK_TEACHERS.length + 1}`,
-                        basic_salary: teacherData.basic_salary || 40000.00,
+                        ...teacherData, // Assumes teacherData is already snake_case
                         is_active: true,
-                        // Map frontend fields (camelCase) to mock fields (snake_case)
-                        first_name: teacherData.firstName,
-                        last_name: teacherData.lastName,
-                        position: teacherData.designation,
-                        phone_no: teacherData.phone,
-                        email: teacherData.email,
-                        ...teacherData, // Pass other fields like gender, address, etc.
                     };
                     MOCK_TEACHERS.push(newStaff);
                     const newTeacher = normalizeStaffToTeacher(newStaff);
@@ -216,30 +224,14 @@ const teacherService = {
         // *** CORRECTED: Real API Call using POST /api/staff with JSON ***
         try {
             const token = localStorage.getItem('token');
-            
-            // Map frontend fields (camelCase) to API fields (snake_case)
-            // as required by the POST /api/staff documentation
-            const apiData = {
-                // User fields
-                unique_no: teacherData.unique_no,
-                first_name: teacherData.firstName,
-                last_name: teacherData.lastName,
-                username: teacherData.username,
-                password: teacherData.password,
-                gender: teacherData.gender,
-                date_of_birth: teacherData.date_of_birth,
-                address: teacherData.address,
-                
-                // Staff fields
-                email: teacherData.email,
-                phone_no: teacherData.phone,
-                position: teacherData.designation,
-                qualification: teacherData.qualification,
-                basic_salary: teacherData.basic_salary,
-                parent_staff_id: teacherData.parent_staff_id,
-                hire_date: teacherData.hire_date
-            };
-
+            
+            // The teacherData object is already in snake_case format from the form
+            // We just need to remove the 'photo' field if it's null
+            const apiData = { ...teacherData };
+            if (!apiData.photo) {
+                delete apiData.photo;
+            }
+            
             const response = await fetch(`${API_BASE_URL}/staff`, {
                 method: 'POST',
                 headers: {
@@ -247,17 +239,18 @@ const teacherService = {
                     Accept: 'application/json',
                     Authorization: `Bearer ${token}`,
                 },
-                body: JSON.stringify(apiData), // Stringify the JSON object
+                body: JSON.stringify(apiData), // Stringify the snake_case object
             });
-
+            
             const data = await response.json();
+
             if (!response.ok) {
-                 if (response.status === 422) { // Handle validation errors
-                    const errorMessages = Object.values(data.errors).flat().join(' ');
-                    throw new Error(errorMessages || 'Validation failed');
-                 }
-                 throw new Error(data.message || 'Failed to create staff member');
-            }
+                 if (response.status === 422) { // Handle validation errors
+                    const errorMessages = Object.values(data.errors).flat().join(' ');
+                    throw new Error(errorMessages || 'Validation failed');
+                 }
+                 throw new Error(data.message || 'Failed to create staff member');
+            }
             
             data.data = normalizeStaffToTeacher(data.data);
             return data;
@@ -268,64 +261,113 @@ const teacherService = {
 
     // Update teacher/staff
     updateTeacher: async (id, teacherData) => {
-        // teacherData is expected to be a FormData object
-        if (USE_MOCK_DATA) {
-            return new Promise((resolve, reject) => {
-                setTimeout(() => {
-                    const index = MOCK_TEACHERS.findIndex((t) => t.id === parseInt(id));
-                    if (index !== -1) {
-                        // Mock reading from FormData
-                        const updatedStaff = {
-                            ...MOCK_TEACHERS[index],
-                            first_name: teacherData.get('first_name') || MOCK_TEACHERS[index].first_name,
-                            last_name: teacherData.get('last_name') || MOCK_TEACHERS[index].last_name,
-                            position: teacherData.get('position') || MOCK_TEACHERS[index].position,
-                            phone_no: teacherData.get('phone_no') || MOCK_TEACHERS[index].phone_no,
-                            is_active: teacherData.get('is_active') === 'true' ? true : (teacherData.get('is_active') === 'false' ? false : MOCK_TEACHERS[index].is_active),
-                        };
-                        MOCK_TEACHERS[index] = updatedStaff;
-                        const updatedTeacher = normalizeStaffToTeacher(updatedStaff);
-                        resolve({ success: true, message: 'Teacher updated successfully', data: updatedTeacher });
-                    } else {
-                        reject(new Error('Teacher not found'));
-                    }
-                }, 800);
-            });
-        }
+  // teacherData: plain JS object (snake_case) from your form
+  if (USE_MOCK_DATA) {
+    return new Promise((resolve, reject) => {
+      setTimeout(() => {
+        const index = MOCK_TEACHERS.findIndex((t) => t.id === parseInt(id));
+        if (index !== -1) {
+          const updatedStaff = {
+            ...MOCK_TEACHERS[index],
+            ...teacherData,
+          };
+          MOCK_TEACHERS[index] = updatedStaff;
+          const updatedTeacher = normalizeStaffToTeacher(updatedStaff);
+          resolve({ success: true, message: 'Teacher updated successfully', data: updatedTeacher });
+        } else {
+          reject(new Error('Teacher not found'));
+        }
+      }, 800);
+    });
+  }
 
-        // Real API Call using PUT /api/staff/{id} (multipart/form-data)
-        try {
-            const token = localStorage.getItem('token');
-            
-            // Add the PUT method override for Laravel
-            // This assumes teacherData is already a FormData object
-            teacherData.append('_method', 'POST');
+  try {
+    const token = localStorage.getItem('token');
 
-            const response = await fetch(`${API_BASE_URL}/staff/${id}`, {
-                method: 'POST', // Use POST for multipart/form-data updates
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                    Accept: 'application/json',
-// No 'Content-Type' header needed
-                },
-                body: teacherData,
-            });
+    // Build FormData for multipart request
+    const formData = new FormData();
+    for (const key in teacherData) {
+      const val = teacherData[key];
 
-            const data = await response.json();
-            if (!response.ok) {
-                 if (response.status === 422) {
-                    const errorMessages = Object.values(data.errors).flat().join(' ');
-                    throw new Error(errorMessages || 'Validation failed');
-                 }
-                 throw new Error(data.message || 'Failed to update staff member');
-            }
-            
-            data.data = normalizeStaffToTeacher(data.data);
-            return data;
-        } catch (error) {
-            throw new Error(error.message || 'Network error occurred');
-     }
-    },
+      // skip undefined / null fields (unless you want to explicitly send null)
+      if (val === undefined || val === null) continue;
+
+      if (key === 'photo') {
+        // Only append if it's a File (new upload)
+        if (val instanceof File) {
+          formData.append('photo', val);
+        } else {
+          // If val is a string (existing URL/path) we usually skip it.
+          // If your backend expects an explicit string path, append it:
+          // formData.append('photo', val);
+        }
+      } else if (key === 'password' && !val) {
+        // skip empty password on update
+        continue;
+      } else {
+        // Convert booleans/numbers to strings for FormData
+        if (typeof val === 'boolean' || typeof val === 'number') {
+          formData.append(key, String(val));
+        } else {
+          formData.append(key, val);
+        }
+      }
+    }
+
+    // IMPORTANT: method spoofing for PUT
+    
+
+    // Debug: inspect FormData contents (useful during dev)
+    if (process.env.NODE_ENV !== 'production') {
+      for (const pair of formData.entries()) {
+        // WARNING: Files log as File objects
+        // eslint-disable-next-line no-console
+        console.log('FormData:', pair[0], pair[1]);
+      }
+    }
+
+    const response = await fetch(`${API_BASE_URL}/staff/${id}`, {
+      method: 'POST', // POST + _method=PUT (Laravel method spoof)
+      headers: {
+        Authorization: token ? `Bearer ${token}` : '',
+        Accept: 'application/json',
+        // DO NOT set Content-Type when using FormData
+      },
+      body: formData,
+    });
+
+    // Try to parse JSON safely
+    let data;
+    const text = await response.text();
+    try {
+      data = text ? JSON.parse(text) : {};
+    } catch (e) {
+      // If response isn't JSON, throw raw text for easier debugging
+      throw new Error(`Invalid JSON response: ${text}`);
+    }
+
+    if (!response.ok) {
+      if (response.status === 422 && data.errors) {
+        const errorMessages = Object.values(data.errors).flat().join(' ');
+        throw new Error(errorMessages || 'Validation failed');
+      }
+      throw new Error(data.message || `Failed to update staff (${response.status})`);
+    }
+
+    // Normalize returned staff -> teacher shape if needed
+    if (data && data.data) {
+      data.data = normalizeStaffToTeacher(data.data);
+    }
+
+    return data;
+  } catch (error) {
+    // Helpful console logging for debugging
+    // eslint-disable-next-line no-console
+    console.error('updateTeacher error:', error);
+    throw new Error(error.message || 'Network error occurred');
+  }
+},
+
 
     // Delete teacher/staff
     deleteTeacher: async (id) => {
@@ -337,9 +379,9 @@ const teacherService = {
                         MOCK_TEACHERS.splice(index, 1);
                         resolve({ success: true, message: 'Teacher deleted successfully' });
                     } else reject(new Error('Teacher not found'));
-            }, 500);
+                }, 500);
             });
-        }
+     }
 
         // Real API Call (Assuming a DELETE endpoint exists)
         try {
@@ -348,19 +390,18 @@ const teacherService = {
                 method: 'DELETE',
                 headers: {
                     Authorization: `Bearer ${token}`,
-                    Accept: 'application/json',
+                    Accept: 'application/json',
                 },
             });
 
-            // Handle 204 No Content (success, but no JSON body)
-            if (response.status === 204) {
-                 return { success: true, message: 'Teacher deleted successfully' };
-            }
+            if (response.status === 204) {
+                 return { success: true, message: 'Teacher deleted successfully' };
+            }
 
             const data = await response.json();
             if (!response.ok) throw new Error(data.message || 'Failed to delete staff member');
             
-            return data;
+            return data;
         } catch (error) {
             throw new Error(error.message || 'Network error occurred');
         }

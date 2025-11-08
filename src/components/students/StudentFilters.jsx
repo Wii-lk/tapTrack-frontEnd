@@ -1,6 +1,19 @@
 import React from 'react';
 import { Search, Filter } from 'lucide-react';
-import Input from '../common/Input';
+import Input from '../common/Input'; // This import isn't used by the inputs, but kept for context
+
+// In a real app, you would fetch this from '/api/grades'
+// Using the grades from your API docs and form for consistency
+const GRADES_LIST = [
+  { id: 1, name: 'Grade 1' },
+  { id: 2, name: 'Grade 2' },
+  { id: 3, name: 'Grade 3' },
+  { id: 5, name: 'Grade 4' },
+  { id: 6, name: 'Grade 5' },
+  { id: 9, name: 'Grade 6' },
+  { id: 10, name: 'Grade 10-A' },
+  // Add other grades as needed
+];
 
 const StudentFilters = ({ filters, onFilterChange, onReset }) => {
   const handleChange = (e) => {
@@ -15,15 +28,17 @@ const StudentFilters = ({ filters, onFilterChange, onReset }) => {
         <h3 className="text-lg font-semibold text-gray-800">Filters</h3>
       </div>
 
+      {/* Grid is 4 columns. Search spans 2, others span 1. */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        {/* Search */}
-        <div className="relative">
+        
+        {/* Search (Spans 2 columns) */}
+        <div className="relative md:col-span-2">
           <input
             type="text"
-            name="search"
+            name="search" // This name is correct
             value={filters.search || ''}
             onChange={handleChange}
-            placeholder="Search by name, admission no..."
+            placeholder="Search by name, parent name..."
             className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
           />
           <Search
@@ -32,43 +47,33 @@ const StudentFilters = ({ filters, onFilterChange, onReset }) => {
           />
         </div>
 
-        {/* Class Filter */}
+        {/* Grade Filter (Was Class) */}
         <select
-          name="class"
-          value={filters.class || ''}
+          name="grade_id" // 1. CORRECTED: Name now 'grade_id'
+          value={filters.grade_id || ''} // 2. CORRECTED: State property is 'grade_id'
           onChange={handleChange}
           className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
         >
-          <option value="">All Classes</option>
-          <option value="Grade 8">Grade 8</option>
-          <option value="Grade 9">Grade 9</option>
-          <option value="Grade 10">Grade 10</option>
-          <option value="Grade 11">Grade 11</option>
+          <option value="">All Grades</option>
+          {/* 3. CORRECTED: Value is now the grade ID (integer) */}
+          {GRADES_LIST.map(grade => (
+            <option key={grade.id} value={grade.id}>
+              {grade.name}
+            </option>
+          ))}
         </select>
 
-        {/* Section Filter */}
+        {/* Status Filter (Was Status) */}
         <select
-          name="section"
-          value={filters.section || ''}
-          onChange={handleChange}
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
-        >
-          <option value="">All Sections</option>
-          <option value="A">Section A</option>
-          <option value="B">Section B</option>
-          <option value="C">Section C</option>
-        </select>
-
-        {/* Status Filter */}
-        <select
-          name="status"
-          value={filters.status || ''}
+          name="is_active" // 4. CORRECTED: Name now 'is_active'
+          value={filters.is_active || ''} // 5. CORRECTED: State property is 'is_active'
           onChange={handleChange}
           className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
         >
           <option value="">All Status</option>
-          <option value="active">Active</option>
-          <option value="inactive">Inactive</option>
+          {/* 6. CORRECTED: Values are now 'true' and 'false' strings */}
+          <option value="true">Active</option>
+          <option value="false">Inactive</option>
         </select>
       </div>
 

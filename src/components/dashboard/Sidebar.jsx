@@ -40,7 +40,16 @@ const Sidebar = () => {
     },
     { id: 'fees', label: 'Fees', icon: DollarSign, path: '/fees' },
     { id: 'payments', label: 'Payments', icon: CreditCard, path: '/payments' },
-    { id: 'attendance', label: 'Attendance Management', icon: ClipboardCheck, path: '/attendance' },
+    { 
+      id: 'attendance', 
+      label: 'Attendance', 
+      icon: ClipboardCheck,
+      hasSubmenu:true,
+      submenu:[
+        {id:"today_attendance",label:"Today's Attendance",path:"/attendance"},
+        {id:"attendance_history", label:"Attendance History",path:"/attendance_history"},
+      ], 
+    },
     { id: 'reports', label: 'Reports', icon: FileText, path: '/reports' },
   ];
 

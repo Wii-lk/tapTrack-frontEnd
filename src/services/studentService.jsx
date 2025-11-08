@@ -1,141 +1,114 @@
 const API_BASE_URL = 'http://localhost:8000/api';
 
 // Set to true for mock data
-const USE_MOCK_DATA = true;
+const USE_MOCK_DATA = false;
 
-// Mock Students Data (Using frontend camelCase format)
+// Mock Students Data
 const MOCK_STUDENTS = [
   {
     id: 1,
-    admissionNo: 'STU001',
+    user_id: 101,
+    first_name: 'Kasun',
+    last_name: 'Perera',
+    unique_no: 'STU001',
+    date_of_birth: '2010-05-15',
+    gender: 'Male',
+    username: 'kasun.perera', 
+    address: '123, Galle Road, Colombo 03',
+    parent_name: 'Mr. Perera',
+    parent_nic: '851234567V',
+    parent_phone: '+94771234568',
+    grade_id: 10,
+    grade: { id: 10, name: 'Grade 10-A' },
+    is_active: false,
+    enrollment_date: '2020-01-10',
+    // Mock data for frontend list (camelCase)
     firstName: 'Kasun',
     lastName: 'Perera',
     fullName: 'Kasun Perera',
-    dateOfBirth: '2010-05-15',
-    gender: 'Male',
-    email: 'kasun.perera@student.school.com',
-    phone: '+94771234567',
-    address: '123, Galle Road, Colombo 03',
+    admissionNo: 'STU001',
     guardianName: 'Mr. Perera',
-    guardianPhone: '+94771234568',
-    guardianEmail: 'perera@gmail.com',
-    class: 'Grade 10-A', // Combined grade and section
-    gradeId: 10,
-    status: 'active',
-    profileImage: null,
-  },
-  {
-    id: 2,
-    admissionNo: 'STU002',
-    firstName: 'Nimal',
-    lastName: 'Silva',
-    fullName: 'Nimal Silva',
-    dateOfBirth: '2010-08-22',
-    gender: 'Male',
-    email: 'nimal.silva@student.school.com',
-    phone: '+94772234567',
-    address: '456, Kandy Road, Colombo 07',
-    guardianName: 'Mrs. Silva',
-    guardianPhone: '+94772234568',
-    guardianEmail: 'silva@gmail.com',
     class: 'Grade 10-A',
     gradeId: 10,
     status: 'active',
-    profileImage: null,
   },
   {
-    id: 3,
-    admissionNo: 'STU003',
-    firstName: 'Saman',
-    lastName: 'Fernando',
-    fullName: 'Saman Fernando',
-    dateOfBirth: '2011-03-10',
+    id: 2,
+    user_id: 102,
+    first_name: 'Nimal',
+    last_name: 'Silva',
+    unique_no: 'STU002',
+    date_of_birth: '2010-08-22',
     gender: 'Male',
-    email: 'saman.fernando@student.school.com',
-    phone: '+94773234567',
-    address: '789, Negombo Road, Wattala',
-    guardianName: 'Mr. Fernando',
-    guardianPhone: '+94773234568',
-    guardianEmail: 'fernando@gmail.com',
-    class: 'Grade 9-B',
-    gradeId: 9,
+    username: 'nimal.silva',
+    address: '456, Kandy Road, Colombo 07',
+    parent_name: 'Mrs. Silva',
+    parent_nic: '881234567V',
+    parent_phone: '+94772234568',
+    grade_id: 10,
+    grade: { id: 10, name: 'Grade 10-A' },
+    is_active: true,
+    enrollment_date: '2020-01-11',
+    // Mock data for frontend list (camelCase)
+    firstName: 'Nimal',
+    lastName: 'Silva',
+    fullName: 'Nimal Silva',
+    admissionNo: 'STU002',
+    guardianName: 'Mrs. Silva',
+    class: 'Grade 10-A',
+    gradeId: 10,
     status: 'active',
-    profileImage: null,
   },
 ];
 
-// Mock Fee Records
-const MOCK_FEE_RECORDS = {
-  1: [
-    {
-      id: 1,
-      feeType: 'Tuition Fee',
-      amount: 25000,
-      paidAmount: 25000,
-      dueDate: '2025-01-31',
-      paidDate: '2025-01-15',
-      status: 'paid',
-    },
-    {
-      id: 2,
-      feeType: 'Activity Fee',
-      amount: 10000,
-      paidAmount: 10000,
-      dueDate: '2025-01-31',
-      paidDate: '2025-01-20',
-      status: 'paid',
-    },
-    {
-      id: 3,
-      feeType: 'Library Fee',
-      amount: 5000,
-      paidAmount: 0,
-      dueDate: '2025-02-28',
-      paidDate: null,
-      status: 'pending',
-    },
-  ],
-  // ... other student fee records
-};
-
-// Mock Attendance Records
-const MOCK_ATTENDANCE_RECORDS = {
-  1: [
-    { date: '2025-10-01', status: 'present' },
-    { date: '2025-10-02', status: 'present' },
-    { date: '2025-10-03', status: 'absent' },
-    // ... other attendance records
-  ],
-};
+// Mock Fee/Attendance Records
+const MOCK_FEE_RECORDS = { 1: [], 2: [] };
+const MOCK_ATTENDANCE_RECORDS = { 1: [], 2: [] };
 
 
 /**
  * Normalization function for students
  * Maps API snake_case (e.g., first_name) to frontend camelCase (e.g., firstName)
+ * AND passes through the original snake_case fields for the edit form.
  */
 const normalizeStudent = (student) => {
   if (!student) return null;
-  return {
+  
+  // Data for Tables (camelCase)
+  const normalized = {
     id: student.id,
     userId: student.user_id,
     firstName: student.first_name,
     lastName: student.last_name,
     fullName: `${student.first_name || ''} ${student.last_name || ''}`.trim(),
     admissionNo: student.unique_no,
-    dateOfBirth: student.date_of_birth,
+    dateOfBirth: student.date_of_birth, // Used by form
+    guardianName: student.parent_name, // Used by form
+    gradeId: student.grade_id, // Used by form
+    class: student.grade ? student.grade.name : 'N/A',
+    status: student.is_active ? 'active' : 'inactive',
+    photoUrl: student.photo_url,
+    
+    // *** CORRECTION: Pass through ALL original API fields for the edit form ***
+    first_name: student.first_name,
+    last_name: student.last_name,
+    unique_no: student.unique_no,
+    date_of_birth: student.date_of_birth,
     gender: student.gender,
     address: student.address,
-    guardianName: student.parent_name,
-    guardianNic: student.parent_nic,
-    guardianPhone: student.parent_phone,
-    gradeId: student.grade_id,
-    class: student.grade ? student.grade.name : 'N/A', // Use grade object
-    status: student.is_active ? 'active' : 'inactive',
-    enrollmentDate: student.enrollment_date,
-    outstandingFees: student.outstanding_fees,
-    photoUrl: student.photo_url,
-    // Add any other fields you need from the API response
+    parent_name: student.parent_name,
+    parent_nic: student.parent_nic,
+    parent_phone: student.parent_phone,
+    grade_id: student.grade_id,
+    is_active: student.is_active,
+    enrollment_date: student.enrollment_date,
+    username: student.username, // Assuming API sends this
+    guardianNic: student.parent_nic, // Duplicating for form
+    guardianPhone: student.parent_phone, // Duplicating for form
+    enrollmentDate: student.enrollment_date, // Duplicating for form
   };
+  
+  return normalized;
 };
 
 const studentService = {
@@ -146,7 +119,7 @@ const studentService = {
         setTimeout(() => {
           let filteredStudents = [...MOCK_STUDENTS];
 
-          // Apply filters (using mock fields)
+          // Apply filters
           if (filters.search) {
             const searchLower = filters.search.toLowerCase();
             filteredStudents = filteredStudents.filter(
@@ -157,11 +130,11 @@ const studentService = {
           }
           if (filters.grade_id) {
             filteredStudents = filteredStudents.filter(
-              (s) => s.gradeId === filters.grade_id
+              (s) => s.gradeId === parseInt(filters.grade_id)
             );
           }
           if (filters.is_active !== undefined && filters.is_active !== '') {
-             const isActive = filters.is_active === 'true' || filters.is_active === true;
+             const isActive = filters.is_active === 'true';
              const status = isActive ? 'active' : 'inactive';
              filteredStudents = filteredStudents.filter(
               (s) => s.status === status
@@ -172,7 +145,8 @@ const studentService = {
           const total = filteredStudents.length;
           const start = (page - 1) * perPage;
           const end = start + perPage;
-          const paginatedStudents = filteredStudents.slice(start, end);
+          // Normalize for the table view
+          const paginatedStudents = filteredStudents.slice(start, end).map(normalizeStudent);
 
           resolve({
             success: true,
@@ -193,12 +167,7 @@ const studentService = {
     // Real API call
     try {
       const token = localStorage.getItem("token");
-      const queryParams = new URLSearchParams({
-        page,
-        per_page: perPage,
-      });
-
-      // Use API query param names
+      const queryParams = new URLSearchParams({ page, per_page: perPage });
       if (filters.grade_id) queryParams.append("grade_id", filters.grade_id);
       if (filters.is_active !== undefined && filters.is_active !== '')
         queryParams.append("is_active", filters.is_active);
@@ -211,11 +180,12 @@ const studentService = {
           Authorization: `Bearer ${token}`,
         },
       });
-
+      
       const data = await response.json();
+      console.log(data);
       if (!response.ok) throw new Error(data.message || "Failed to fetch students");
       
-      // Normalize the API data before sending it to the component
+      // Normalize data for table
       data.data.students = data.data.students.map(normalizeStudent);
 
       return data;
@@ -231,8 +201,8 @@ const studentService = {
         setTimeout(() => {
           const student = MOCK_STUDENTS.find((s) => s.id === parseInt(id));
           if (student) {
-            // Mock data is already in frontend format
-            resolve({ success: true, data: student });
+            // *** CORRECTED: Normalize the mock data to match the real API flow ***
+            resolve({ success: true, data: normalizeStudent(student) });
           } else {
             reject(new Error("Student not found"));
           }
@@ -252,9 +222,10 @@ const studentService = {
       });
 
       const data = await response.json();
+      console.log(data);
       if (!response.ok) throw new Error(data.message || "Failed to fetch student");
 
-      // Normalize the single student data
+      // Normalize data for the edit form
       data.data = normalizeStudent(data.data);
       return data;
     } catch (error) {
@@ -264,49 +235,51 @@ const studentService = {
 
   // Create new student (Admin only)
   createStudent: async (studentData) => {
-    // studentData is expected to be a FormData object
+    // *** This function now expects a plain JS object (for JSON) ***
     if (USE_MOCK_DATA) {
       return new Promise((resolve) => {
         setTimeout(() => {
-          // Mocking FormData.get()
           const newStudent = {
             id: MOCK_STUDENTS.length + 1,
-            admissionNo: studentData.get('unique_no') || `STU${String(MOCK_STUDENTS.length + 1).padStart(3, "0")}`,
-            firstName: studentData.get('first_name'),
-            lastName: studentData.get('last_name'),
-            fullName: `${studentData.get('first_name')} ${studentData.get('last_name')}`,
-            guardianName: studentData.get('parent_name'),
-            gradeId: parseInt(studentData.get('grade_id')),
-            class: 'Mock Grade', // In a real app, you might fetch this
-            status: "active",
+            first_name: studentData.first_name,
+            last_name: studentData.last_name,
+            unique_no: studentData.unique_no || `STU${String(MOCK_STUDENTS.length + 1).padStart(3, "0")}`,
+            parent_name: studentData.parent_name,
+            grade_id: parseInt(studentData.grade_id),
+            is_active: true,
+            // ... add other fields from studentData
           };
           MOCK_STUDENTS.push(newStudent);
           resolve({
             success: true,
             message: "Student created successfully",
-            data: normalizeStudent(newStudent), // Normalize mock data for consistency
+            data: normalizeStudent(newStudent), 
           });
         }, 800);
       });
     }
 
-    // Real API Call using FormData
+    // *** CORRECTED: Real API Call sends JSON (as per API docs) ***
     try {
       const token = localStorage.getItem("token");
-
+      
+      const apiData = { ...studentData };
+      if (apiData.photo === null) {
+        delete apiData.photo; // Remove null photo field
+      }
+      
       const response = await fetch(`${API_BASE_URL}/students`, {
         method: "POST",
         headers: {
-          // No 'Content-Type' header; browser sets it for FormData
+          "Content-Type": "application/json", // Send as JSON
           Accept: "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: studentData, // Send FormData directly
+        body: JSON.stringify(apiData), // Send stringified JSON
       });
-
       const data = await response.json();
       if (!response.ok) {
-           if (response.status === 422) { // Handle validation errors
+           if (response.status === 422) {
               const errorMessages = Object.values(data.errors).flat().join(' ');
               throw new Error(errorMessages || 'Validation failed');
            }
@@ -320,13 +293,12 @@ const studentService = {
 
   // Update student (Admin only, multipart/form-data)
   updateStudent: async (id, studentData) => {
-    // studentData is expected to be a FormData object
+    // This function correctly expects studentData to be FormData.
     if (USE_MOCK_DATA) {
       return new Promise((resolve, reject) => {
         setTimeout(() => {
           const index = MOCK_STUDENTS.findIndex((s) => s.id === parseInt(id));
           if (index !== -1) {
-            // Mocking FormData.get()
             MOCK_STUDENTS[index] = {
               ...MOCK_STUDENTS[index],
               firstName: studentData.get('first_name') || MOCK_STUDENTS[index].firstName,
@@ -338,7 +310,7 @@ const studentService = {
             resolve({
               success: true,
               message: "Student updated successfully",
-              data: MOCK_STUDENTS[index],
+              data: normalizeStudent(MOCK_STUDENTS[index]),
             });
           } else {
             reject(new Error("Student not found"));
@@ -346,32 +318,29 @@ const studentService = {
         }, 800);
       });
     }
-
-    // Real API Call
+    // This part is correct as per your API docs
     try {
       const token = localStorage.getItem("token");
-
-      // Add _method: 'PUT' for Laravel/PHP frameworks
-      studentData.append('_method', 'PUT');
-
+      // studentData.append('_method', 'PUT');
       const response = await fetch(`${API_BASE_URL}/students/${id}`, {
-        method: "POST", // Use POST for FormData updates
+        method: "POST", 
         headers: {
-          // No 'Content-Type' header
           Authorization: `Bearer ${token}`,
           Accept: "application/json",
         },
         body: studentData,
       });
-
       const data = await response.json();
+      console.log(data);
       if (!response.ok) {
-           if (response.status === 422) { // Handle validation errors
+           if (response.status === 422) {
               const errorMessages = Object.values(data.errors).flat().join(' ');
               throw new Error(errorMessages || 'Validation failed');
            }
            throw new Error(data.message || 'Failed to update student');
       }
+      // Normalize the response data before sending to component
+      data.data = normalizeStudent(data.data);
       return data;
     } catch (error) {
       throw new Error(error.message || "Network error occurred");
@@ -380,27 +349,44 @@ const studentService = {
 
   // Delete student
   deleteStudent: async (id) => {
-    // Your API docs don't show a DELETE endpoint, so we'll block it.
     if (USE_MOCK_DATA) {
         return new Promise((resolve, reject) => {
             setTimeout(() => {
                 const index = MOCK_STUDENTS.findIndex(s => s.id === parseInt(id));
                 if (index > -1) {
                     MOCK_STUDENTS.splice(index, 1);
-                    resolve({ success: true, message: "Student deleted (mock)"});
+                    resolve({ success: true, message: "Student deleted (mock)" });
                 } else {
                     reject(new Error("Student not found (mock)"));
                 }
             }, 500);
         });
     }
-    // If you HAD a real API endpoint:
-    // return fetch(`${API_BASE_URL}/students/${id}`, { method: 'DELETE', ... });
-    throw new Error("Delete student functionality is not supported by the API.");
-  },
+
+    // 🔥 Real API call
+    try {
+        const response = await fetch(`${API_BASE_URL}/students/${id}`, {
+            method: "DELETE",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json",
+            },
+        });
+
+        if (!response.ok) {
+            throw new Error(`Failed to delete student: ${response.statusText}`);
+        }
+
+        const data = await response.json();
+        return data;
+    } catch (error) {
+        console.error("Delete student error:", error);
+        throw error;
+    }
+},
+
 
   // --- MOCK FUNCTIONS FOR DETAIL PAGE (from mock data) ---
-  // You can move these to a separate service if you prefer
   getStudentFeeRecords: async (studentId) => {
      if (USE_MOCK_DATA) {
         return new Promise((resolve) => {
@@ -412,7 +398,6 @@ const studentService = {
             }, 300);
         });
      }
-     // Real API: return fetch(`${API_BASE_URL}/students/${studentId}/fees` ... )
      throw new Error("Fee records API not implemented");
   },
 
@@ -427,7 +412,6 @@ const studentService = {
             }, 300);
         });
      }
-     // Real API: return fetch(`${API_BASE_URL}/students/${studentId}/attendance` ... )
      throw new Error("Attendance records API not implemented");
   }
 };
