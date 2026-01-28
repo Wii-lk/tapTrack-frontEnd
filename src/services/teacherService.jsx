@@ -61,31 +61,31 @@ const MOCK_TEACHERS = [
  * (API: snake_case -> FE: camelCase)
  */
 const normalizeStaffToTeacher = (staff) => {
-    if (!staff) return null;
-    return {
-        id: staff.id,
-        user_id: staff.user_id,
-        firstName: staff.first_name, // API 'first_name' becomes FE 'firstName'
-        lastName: staff.last_name,
-        fullName: `${staff.first_name || ''} ${staff.last_name || ''}`.trim(),
-        email: staff.email,
-        phone: staff.phone_no, 
-        designation: staff.position,
-        status: staff.is_active ? 'active' : 'inactive', 
+    if (!staff) return null;
+    return {
+        id: staff.id,
+        user_id: staff.user_id,
+        firstName: staff.first_name,
+        lastName: staff.last_name,
+        fullName: `${staff.first_name || ''} ${staff.last_name || ''}`.trim(),
+        email: staff.email,
+        phone: staff.phone_no, 
+        designation: staff.position,
+        status: staff.is_active ? 'active' : 'inactive', 
         
-        // Pass through all API fields for the form
+        // Pass through fields
         unique_no: staff.unique_no,
+        employee_no: staff.employee_no, // <--- ADD THIS LINE
         basic_salary: staff.basic_salary,
         date_of_birth: staff.date_of_birth,
         qualification: staff.qualification,
         hire_date: staff.hire_date,
         parent_staff_id: staff.parent_staff_id,
-        parent_staff: staff.parent_staff,
         gender: staff.gender,
         address: staff.address,
         is_active: staff.is_active,
-        username: staff.username, // Assuming username comes from API
-    };
+        username: staff.username,
+    };
 };
 
 // Teacher Service (now uses /api/staff endpoints)
@@ -243,6 +243,7 @@ console.log(data);
             });
             
             const data = await response.json();
+            console.log(data);
 
             if (!response.ok) {
                  if (response.status === 422) { // Handle validation errors

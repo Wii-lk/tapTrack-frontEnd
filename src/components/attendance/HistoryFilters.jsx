@@ -30,8 +30,8 @@ const HistoryFilters = ({ onSearch, loading, onExport }) => {
         <Input
           name="user_id"
           label="User ID"
-          placeholder="Enter User ID (e.g., 5)"
-          value={filters.user_id}
+          placeholder="Enter Name"
+          value={filters.user_name}
           onChange={handleChange}
         />
         <Input

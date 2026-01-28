@@ -69,7 +69,7 @@ const AttendanceTable = ({ records, loading, userType }) => {
     // Staff Row
     return (
       <tr key={record.id} className="hover:bg-gray-50">
-        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{user.unique_no}</td>
+        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{user.index_no}</td>
         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{user.name}</td>
         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{user.role}</td>
         <td className="px-6 py-4 whitespace-nowrap">

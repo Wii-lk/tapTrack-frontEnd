@@ -1,20 +1,21 @@
-import React, { useEffect, useState } from 'react';import { Upload, User, Mail, Phone, MapPin, Calendar, Lock, Hash, UserCheck } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { Upload, User, Mail, Phone, MapPin, Calendar, Lock, Hash, UserCheck } from 'lucide-react';
 import Button from '../common/Button';
 import Input from '../common/Input';
 import Select from '../common/Select';
 import TextArea from '../common/TextArea';
+import { gradeService } from '../../services/gradeService';
 
-// --- ADDED ---
 // Helper to get today's date in YYYY-MM-DD format
 const getTodayDate = () => {
   const today = new Date();
   const year = today.getFullYear();
-  const month = String(today.getMonth() + 1).padStart(2, '0'); // Months are 0-indexed
+  const month = String(today.getMonth() + 1).padStart(2, '0');
   const day = String(today.getDate()).padStart(2, '0');
   return `${year}-${month}-${day}`;
 };
 
-// Helper to create the initial empty state (matching API snake_case)
+// Helper to create the initial empty state
 const getInitialState = () => ({
   first_name: '',
   last_name: '',
@@ -24,65 +25,101 @@ const getInitialState = () => ({
   date_of_birth: '',
   address: '',
   photo: null,
-  unique_no: '',
+  index_no: '',
   parent_name: '',
   parent_nic: '',
   parent_phone: '',
   grade_id: '',
-  enrollment_date: getTodayDate(), // <-- MODIFIED: Prefills today's date
+  enrollment_date: getTodayDate(),
   is_active: true,
 });
 
-// Mock grades list. In a real app, you'd fetch this from an API.
-const MOCK_GRADES = [
-  { id: 1, name: 'Grade 1-A' },
-  { id: 2, name: 'Grade 1-B' },
-  { id: 3, name: 'Grade 5-B' },
-  { id: 5, name: 'Grade 6-A' },
-  { id: 6, name: 'Grade 7-A' },
-  { id: 9, name: 'Grade 9-B' },
-  { id: 10, name: 'Grade 10-A' },
-];
-
 const StudentForm = ({ student, onSubmit, onCancel, loading }) => {
-  // The form's internal state uses snake_case, matching the API
   const [formData, setFormData] = useState(getInitialState());
   const [photoPreview, setPhotoPreview] = useState('');
   const [errors, setErrors] = useState({});
+  
+  // State for Grades
+  const [grades, setGrades] = useState([]);
+  const [loadingGrades, setLoadingGrades] = useState(false);
 
+  // Fetch Grades
+  useEffect(() => {
+    const fetchGrades = async () => {
+      try {
+        setLoadingGrades(true);
+        const response = await gradeService.getAllGrades({ is_active: true });
+        if (response.success) {
+          setGrades(response.data.grades);
+        }
+      } catch (error) {
+        console.error("Failed to load grades", error);
+      } finally {
+        setLoadingGrades(false);
+      }
+    };
+    fetchGrades();
+  }, []);
+
+  // Populate Form for Editing
   useEffect(() => {
     if (student) {
-      // *** CORRECTED: Load form from the snake_case fields on the normalized student prop ***
       setFormData({
         first_name: student.first_name || '',
         last_name: student.last_name || '',
         username: student.username || '', 
-        password: '', // Always blank on edit
+        password: '',
         gender: student.gender || '',
         date_of_birth: student.date_of_birth || '',
         address: student.address || '',
-        photo: null, // Always reset file input
-        unique_no: student.unique_no || '', 
+        photo: null,
+        index_no: student.index_no || '', 
         parent_name: student.parent_name || '', 
         parent_nic: student.parent_nic || '',
         parent_phone: student.parent_phone || '',
         grade_id: student.grade_id || '',
-        enrollment_date: student.enrollment_date || '', // This will override the default
+        enrollment_date: student.enrollment_date || '',
         is_active: student.is_active ?? true,
       });
-      setPhotoPreview(student.photoUrl || ''); // Show existing photo
+      setPhotoPreview(student.photoUrl || '');
     } else {
-      // Reset form for "Add New" (this will have today's date)
       setFormData(getInitialState());
       setPhotoPreview('');
     }
   }, [student]);
 
+  // 🟢 NEW: Auto-Generate Username Effect
+  useEffect(() => {
+    // Only run if we are CREATING a new student (not editing)
+    if (!student) {
+      const { first_name, last_name, date_of_birth } = formData;
+
+      if (first_name && last_name && date_of_birth) {
+        // 1. Clean names: lowercase, remove spaces/special chars
+        const cleanFirst = first_name.trim().toLowerCase().replace(/[^a-z0-9]/g, '');
+        const cleanLast = last_name.trim().toLowerCase().replace(/[^a-z0-9]/g, '');
+        
+        // 2. Format DOB: Remove dashes (YYYY-MM-DD -> YYYYMMDD)
+        const cleanDob = date_of_birth.replace(/-/g, '');
+
+        // 3. Construct the username
+        const autoUsername = `${cleanFirst}${cleanLast}_${cleanDob}_phoenix@edu.com`;
+        const autoPassword = `${cleanFirst}${cleanLast}@${cleanDob}`;
+
+        setFormData(prev => ({
+          ...prev,
+          username: autoUsername,
+          password: autoPassword
+        }));
+      }
+    }
+  }, [formData.first_name, formData.last_name, formData.date_of_birth, student]);
+
   const validateForm = () => {
     const newErrors = {};
     if (!formData.first_name) newErrors.first_name = 'First name is required';
     if (!formData.last_name) newErrors.last_name = 'Last name is required';
-    if (!formData.unique_no) newErrors.unique_no = 'Student ID is required';
+    if (!formData.index_no) newErrors.index_no = 'Student ID is required';
     if (!formData.username) newErrors.username = 'Username is required';
     if (!student && !formData.password) newErrors.password = 'Password is required for new students';
     if (!formData.parent_name) newErrors.parent_name = 'Parent name is required';
@@ -117,7 +154,7 @@ const StudentForm = ({ student, onSubmit, onCancel, loading }) => {
       reader.readAsDataURL(file);
     } else {
       setFormData(prev => ({ ...prev, photo: null }));
-      setPhotoPreview(student ? student.photoUrl : ''); // Revert to old photo or empty
+      setPhotoPreview(student ? student.photoUrl : '');
     }
   };
 
@@ -125,11 +162,7 @@ const StudentForm = ({ student, onSubmit, onCancel, loading }) => {
     e.preventDefault();
     if (!validateForm()) return;
 
-    // *** CORRECTED: Send different data formats for Create vs Edit ***
-
     if (student) {
-      // --- EDIT MODE (Update) ---
-      // Convert the snake_case state into FormData
       const formDataForApi = new FormData();
       for (const key in formData) {
         if (key === 'photo' && formData.photo) {
@@ -137,9 +170,8 @@ const StudentForm = ({ student, onSubmit, onCancel, loading }) => {
             formDataForApi.append('photo', formData.photo);
           }
         } else if (key === 'password' && !formData.password) {
-            // Don't send empty password on update
+           // Skip empty password
         } else if (formData[key] !== null && formData[key] !== undefined) {
-          // Convert boolean to string for FormData
           let value = formData[key];
           if (typeof value === 'boolean') {
             value = value ? 1 : 0;
@@ -147,13 +179,8 @@ const StudentForm = ({ student, onSubmit, onCancel, loading }) => {
           formDataForApi.append(key, value);
         }
       }
-      // Pass the FormData object to the parent for UPDATE
       onSubmit(formDataForApi);
-
     } else {
-      // --- CREATE MODE ---
-      // Pass the plain JavaScript state object to the parent for CREATE
-      // The service layer will stringify this as JSON
       onSubmit(formData);
     }
   };
@@ -193,7 +220,6 @@ const StudentForm = ({ student, onSubmit, onCancel, loading }) => {
               name="photo"
               accept="image/*"
               onChange={handleFileChange}
-              // Photo is only for update, so disable if not in edit mode
               disabled={!student} 
               className="block w-full text-sm text-gray-500 file:mr-2 file:py-1.5 file:px-3 file:rounded file:border-0 file:text-xs file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 disabled:opacity-50"
             />
@@ -218,10 +244,10 @@ const StudentForm = ({ student, onSubmit, onCancel, loading }) => {
         />
         <Input
           label="Student ID (Unique No) *"
-          name="unique_no"
-          value={formData.unique_no}
+          name="index_no"
+          value={formData.index_no}
           onChange={handleChange}
-          error={errors.unique_no}
+          error={errors.index_no}
           icon={Hash}
         />
         <Input
@@ -269,15 +295,19 @@ const StudentForm = ({ student, onSubmit, onCancel, loading }) => {
             Login Information
           </h3>
         </div>
+        
+        {/* Username Field (Auto-filled but editable) */}
         <Input
-          label="Username *"
+          label="Username * (Auto-generated)"
           name="username"
           value={formData.username}
           onChange={handleChange}
           error={errors.username}
           disabled={!!student} // Disable username on edit
           icon={UserCheck}
+          placeholder="firstname.lastname_dob_phoenix@edu.com"
         />
+        
         <Input
           label={student ? "New Password" : "Password *"}
           name="password"
@@ -326,15 +356,17 @@ const StudentForm = ({ student, onSubmit, onCancel, loading }) => {
             Academic Information
           </h3>
         </div>
+        
         <Select
-          label="Grade *"
+          label={loadingGrades ? "Loading Grades..." : "Grade *"}
           name="grade_id"
           value={formData.grade_id}
           onChange={handleChange}
           error={errors.grade_id}
+          disabled={loadingGrades}
         >
           <option value="">Select Grade</option>
-          {MOCK_GRADES.map(grade => (
+          {grades.map(grade => (
             <option key={grade.id} value={grade.id}>{grade.name}</option>
           ))}
         </Select>

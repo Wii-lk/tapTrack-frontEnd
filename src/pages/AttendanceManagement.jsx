@@ -61,7 +61,7 @@ const AttendanceManagement = () => {
     setError('');
     try {
       const res = await attendanceService.getTodayAttendanceSummary(userType, summaryFilters);
-      console.log('Summary Response:', res); // Debug log
+      // console.log('Summary Response:', res); // Debug log
       
       if (res.success && res.data) {
         // FIXED: Make sure we're setting the stats from the correct path
@@ -88,7 +88,7 @@ const AttendanceManagement = () => {
     setError('');
     try {
       const res = await attendanceService.getCurrentPresence();
-      console.log('Presence Response:', res); // Debug log
+      // console.log('Presence Response:', res); // Debug log
       
       if (res.success && res.data) {
         setPresenceStats(res.data);
@@ -107,7 +107,7 @@ const AttendanceManagement = () => {
     setError('');
     try {
       const res = await attendanceService.getAttendanceHistory(filters, page);
-      console.log('History Response:', res); // Debug log
+      // console.log('History Response:', res); // Debug log
       
       if (res.success && res.data) {
         setHistoryRecords(res.data.attendance || []);

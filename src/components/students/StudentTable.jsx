@@ -62,9 +62,9 @@ const StudentTable = ({ students, onEdit, onDelete, onView, loading }) => {
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Class
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              {/* <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Section
-              </th>
+              </th> */}
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Phone
               </th>
@@ -81,7 +81,7 @@ const StudentTable = ({ students, onEdit, onDelete, onView, loading }) => {
               <tr key={student.id} className="hover:bg-gray-50">
                 {/* ...<td> for Admission No... */}
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                  {student.admissionNo}
+                  {student.index_no}
                 </td>
                 {/* ...<td> for Student Name... */}
                 <td className="px-6 py-4 whitespace-nowrap">
@@ -107,9 +107,9 @@ const StudentTable = ({ students, onEdit, onDelete, onView, loading }) => {
                   {student.class}
                 </td>
                 {/* ...<td> for Section... */}
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                {/* <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                   {student.section}
-                </td>
+                </td> */}
                 {/* ...<td> for Phone... */}
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                   {student.parent_phone}

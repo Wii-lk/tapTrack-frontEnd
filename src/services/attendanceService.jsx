@@ -12,7 +12,7 @@ const API_BASE_URL = 'http://localhost:8000/api';
 
 // --- SERVICE CONFIGURATION ---
 // Set to true to use mock data (local) instead of real API calls.
-export const USE_MOCK_DATA = true;
+export const USE_MOCK_DATA = false;
 
 // --------------------------------------------------------------------------
 // --- MOCK DATA (Used when USE_MOCK_DATA is true) ---
@@ -56,6 +56,13 @@ const MOCK_CURRENT_PRESENCE = {
   ]
 };
 
+// ✅ FIXED: Added unique_no field
+const MOCK_STAFF_LIST = [
+  { user_id: 101, name: 'Mr. Anura Kumara', unique_no: 'STF001', position: 'Teacher' },
+  { user_id: 102, name: 'Mrs. Suneetha Williams', unique_no: 'STF002', position: 'Principal' },
+  { user_id: 103, name: 'Mr. Kamal Dias', unique_no: 'STF003', position: 'Teacher' }
+];
+
 // --- MOCK "DATABASE" for getAttendanceHistory ---
 const MOCK_ATTENDANCE_HISTORY = {
   attendance: [
@@ -68,6 +75,14 @@ const MOCK_ATTENDANCE_HISTORY = {
   pagination: { currentPage: 1, perPage: 10, total: 4, totalPages: 1 }
 };
 
+// --- MOCK LEAVE TYPES ---
+const MOCK_LEAVE_TYPES = [
+  { id: 1, name: "Sick Leave", deduction_percentage: 0.00, max_days_per_year: 7, requires_approval: true, is_active: true },
+  { id: 2, name: "Casual Leave", deduction_percentage: 0.00, max_days_per_year: 7, requires_approval: true, is_active: true },
+  { id: 3, name: "Annual Leave", deduction_percentage: 0.00, max_days_per_year: 14, requires_approval: true, is_active: true },
+  { id: 4, name: "Unpaid Leave", deduction_percentage: 100.00, max_days_per_year: 0, requires_approval: true, is_active: true },
+  { id: 5, name: "Public Holiday", deduction_percentage: 0.00, max_days_per_year: 0, requires_approval: false, is_active: true }
+];
 
 /**
  * Mock Helper Function
@@ -89,12 +104,12 @@ const generateMockData = (userType, filters) => {
           name: record.name,
           role: 'student',
           unique_no: record.admissionNo,
-          gradeId: record.gradeId, 
+          gradeId: record.gradeId,
         },
         date: "2025-10-14",
         check_in_time: record.inTime,
         check_out_time: record.outTime,
-        status: record.status, 
+        status: record.status,
         is_late: record.status === 'late',
         late_minutes: record.status === 'late' ? 15 : 0,
         notes: null
@@ -137,9 +152,9 @@ const generateMockData = (userType, filters) => {
     transformedRecords.sort((a, b) => a.user.name.localeCompare(b.user.name));
   } else if (filters.sortBy === 'recent') {
     transformedRecords.sort((a, b) => {
-      if (!a.check_in_time) return 1; 
+      if (!a.check_in_time) return 1;
       if (!b.check_in_time) return -1;
-      return a.check_in_time > b.check_in_time ? 1 : -1; 
+      return a.check_in_time > b.check_in_time ? 1 : -1;
     });
   }
 
@@ -158,7 +173,7 @@ const generateMockData = (userType, filters) => {
   return {
     date: "2025-10-14",
     summary: summary,
-    attendance: transformedRecords 
+    attendance: transformedRecords
   };
 };
 
@@ -167,24 +182,20 @@ const generateMockData = (userType, filters) => {
 // --------------------------------------------------------------------------
 
 export const attendanceService = {
-  
+
   /**
-   * Function 1: GET /api/attendance/today
+   * GET /api/attendance/today
    */
   getTodayAttendanceSummary: async (userType, filters = {}) => {
-    
-    // --- MOCK DATA PATH ---
     if (USE_MOCK_DATA) {
-      console.log('Using MOCK DATA for getTodayAttendanceSummary', { userType, filters });
       return new Promise((resolve) => {
         setTimeout(() => {
           const mockData = generateMockData(userType, filters);
           resolve({ success: true, data: mockData });
-        }, 500); 
+        }, 500);
       });
     }
 
-    // --- REAL API CALL PATH ---
     try {
       const token = localStorage.getItem("token");
       if (!token) throw new Error("No auth token found. Please log in.");
@@ -193,7 +204,7 @@ export const attendanceService = {
       if (filters.status) {
         queryParams.append("status", filters.status);
       }
-      
+
       const response = await fetch(`${API_BASE_URL}/attendance/today?${queryParams}`, {
         method: "GET",
         headers: {
@@ -202,16 +213,13 @@ export const attendanceService = {
           "Content-Type": "application/json",
         },
       });
-      
+
       const data = await response.json();
       if (!response.ok) {
         throw new Error(data.message || "Failed to fetch attendance");
       }
-      
-      // ✅ CORRECTED: Return the API response directly.
-      // The API already returns { success: true, data: {...} }
-      return data;
 
+      return data;
     } catch (error) {
       console.error("getTodayAttendanceSummary Error:", error);
       throw new Error(error.message || "Network error occurred");
@@ -219,13 +227,10 @@ export const attendanceService = {
   },
 
   /**
-   * Function 2: GET /api/attendance/current-presence
+   * GET /api/attendance/current-presence
    */
   getCurrentPresence: async () => {
-
-    // --- MOCK DATA PATH ---
     if (USE_MOCK_DATA) {
-      console.log('Using MOCK DATA for getCurrentPresence');
       return new Promise((resolve) => {
         setTimeout(() => {
           resolve({ success: true, data: MOCK_CURRENT_PRESENCE });
@@ -233,7 +238,6 @@ export const attendanceService = {
       });
     }
 
-    // --- REAL API CALL PATH ---
     try {
       const token = localStorage.getItem("token");
       if (!token) throw new Error("No auth token found. Please log in.");
@@ -248,7 +252,6 @@ export const attendanceService = {
         throw new Error(data.message || "Failed to fetch current presence");
       }
 
-      // ✅ CORRECTED: Return the API response directly.
       return data;
     } catch (error) {
       console.error("getCurrentPresence Error:", error);
@@ -257,13 +260,10 @@ export const attendanceService = {
   },
 
   /**
-   * Function 3: GET /api/attendance/history
+   * GET /api/attendance/history
    */
   getAttendanceHistory: async (filters = {}, page = 1) => {
-
-    // --- MOCK DATA PATH ---
     if (USE_MOCK_DATA) {
-      console.log('Using MOCK DATA for getAttendanceHistory', { filters, page });
       return new Promise((resolve) => {
         setTimeout(() => {
           let data = { ...MOCK_ATTENDANCE_HISTORY };
@@ -277,14 +277,13 @@ export const attendanceService = {
       });
     }
 
-    // --- REAL API CALL PATH ---
     try {
       const token = localStorage.getItem("token");
       if (!token) throw new Error("No auth token found. Please log in.");
 
       const queryParams = new URLSearchParams({ page, per_page: 10 });
       Object.keys(filters).forEach(key => {
-        if (filters[key]) { 
+        if (filters[key]) {
           queryParams.append(key, filters[key]);
         }
       });
@@ -295,11 +294,11 @@ export const attendanceService = {
       });
 
       const data = await response.json();
+      console.log(data);
       if (!response.ok) {
         throw new Error(data.message || "Failed to fetch attendance history");
       }
 
-      // ✅ CORRECTED: Return the API response directly.
       return data;
     } catch (error) {
       console.error("getAttendanceHistory Error:", error);
@@ -308,13 +307,10 @@ export const attendanceService = {
   },
 
   /**
-   * Function 4: POST /api/attendance/manual
+   * POST /api/attendance/manual
    */
   manualOverride: async (attendanceData) => {
-
-    // --- MOCK DATA PATH ---
     if (USE_MOCK_DATA) {
-      console.log('Using MOCK DATA for manualOverride', { attendanceData });
       return new Promise((resolve) => {
         setTimeout(() => {
           resolve({
@@ -326,7 +322,6 @@ export const attendanceService = {
       });
     }
 
-    // --- REAL API CALL PATH ---
     try {
       const token = localStorage.getItem("token");
       if (!token) throw new Error("No auth token found. Please log in.");
@@ -342,16 +337,15 @@ export const attendanceService = {
       });
 
       const data = await response.json();
-      
+
       if (!response.ok) {
-           if (response.status === 422) {
-              const errorMessages = Object.values(data.errors).flat().join(' ');
-              throw new Error(errorMessages || 'Validation failed');
-           }
-           throw new Error(data.message || 'Failed to create attendance record');
+        if (response.status === 422) {
+          const errorMessages = Object.values(data.errors).flat().join(' ');
+          throw new Error(errorMessages || 'Validation failed');
+        }
+        throw new Error(data.message || 'Failed to create attendance record');
       }
 
-      // ✅ CORRECTED: Return the API response directly.
       return data;
     } catch (error) {
       console.error("manualOverride Error:", error);
@@ -359,17 +353,11 @@ export const attendanceService = {
     }
   },
 
-
   /**
-   * Function 5: DELETE /api/attendance/{id}
-   * NOTE: This endpoint is not in your provided documentation.
-   * Please confirm it exists on your server.
+   * DELETE /api/attendance/{id}
    */
   deleteAttendance: async (attendanceId) => {
-    
-    // --- MOCK DATA PATH ---
     if (USE_MOCK_DATA) {
-      console.log('Using MOCK DATA for deleteAttendance', { attendanceId });
       return new Promise((resolve) => {
         setTimeout(() => {
           resolve({
@@ -380,12 +368,10 @@ export const attendanceService = {
       });
     }
 
-    // --- REAL API CALL PATH ---
     try {
       const token = localStorage.getItem("token");
       if (!token) throw new Error("No auth token found. Please log in.");
 
-      // ⚠️ WARNING: Assuming endpoint is /api/attendance/{id}
       const response = await fetch(`${API_BASE_URL}/attendance/${attendanceId}`, {
         method: "DELETE",
         headers: {
@@ -395,12 +381,11 @@ export const attendanceService = {
       });
 
       const data = await response.json();
-      
+
       if (!response.ok) {
-           throw new Error(data.message || 'Failed to delete attendance record');
+        throw new Error(data.message || 'Failed to delete attendance record');
       }
-      
-      // ✅ CORRECTED: Return the API response directly.
+
       return data;
     } catch (error) {
       console.error("deleteAttendance Error:", error);
@@ -408,4 +393,186 @@ export const attendanceService = {
     }
   },
 
+  /**
+   * GET /api/staff (Staff List)
+   * Fetches a simple list of all users with the role 'staff'.
+   */
+  getStaffList: async () => {
+    if (USE_MOCK_DATA) {
+      return new Promise((resolve) => {
+        setTimeout(() => {
+          resolve({
+            success: true,
+            data: MOCK_STAFF_LIST
+          });
+        }, 800);
+      });
+    }
+
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        throw new Error("No auth token found. Please log in.");
+      }
+
+      const response = await fetch(`${API_BASE_URL}/staff`, {
+        method: "GET",
+        headers: { Accept: "application/json", Authorization: `Bearer ${token}` }
+      });
+
+      const data = await response.json();
+      console.log(data);
+
+      if (!response.ok) throw new Error(data.message || "Failed to fetch staff list");
+
+      // Transform the staff data to match expected format
+      const transformedStaff = (data.data?.staff || []).map(staff => ({
+        user_id: staff.user_id,
+        employee_no: staff.employee_no,
+        name: `${staff.first_name} ${staff.last_name}`,
+        unique_no: staff.unique_no,
+        position: staff.position,
+        email: staff.email,
+        phone_no: staff.phone_no,
+      }));
+
+      return {
+        success: data.success,
+        data: transformedStaff,
+        pagination: data.data?.pagination
+      };
+    } catch (error) {
+      console.error("getStaffList Error:", error);
+      throw new Error(error.message || "Network error occurred");
+    }
+  },
+
+  /**
+   * GET /api/leave-types
+   * Fetches all available leave types
+   */
+  getLeaveTypes: async () => {
+    if (USE_MOCK_DATA) {
+      return new Promise((resolve) => {
+        setTimeout(() => {
+          resolve({ success: true, data: { leave_types: MOCK_LEAVE_TYPES } });
+        }, 400);
+      });
+    }
+
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) throw new Error("No auth token found. Please log in.");
+
+      const response = await fetch(`${API_BASE_URL}/leave-types`, {
+        method: "GET",
+        headers: { Accept: "application/json", Authorization: `Bearer ${token}` },
+      });
+
+      const data = await response.json();
+      console.log("Leave Types Response:", data);
+      if (!response.ok) throw new Error(data.message || "Failed to fetch leave types");
+      return data;
+    } catch (error) {
+      console.error("getLeaveTypes Error:", error);
+      throw new Error(error.message || "Network error occurred");
+    }
+  },
+
+  /**
+   * POST /api/leaves
+   * Creates a leave record (Admin creates on behalf of staff)
+   */
+  createLeave: async (leaveData) => {
+    if (USE_MOCK_DATA) {
+      return new Promise((resolve) => {
+        setTimeout(() => {
+          resolve({
+            success: true,
+            message: "Leave created and attendance records updated (Mock)",
+            data: {
+              leave_id: Math.floor(Math.random() * 1000),
+              ...leaveData,
+              total_days: 1,
+              status: "approved",
+              attendance_records_created: 1
+            }
+          });
+        }, 700);
+      });
+    }
+
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) throw new Error("No auth token found. Please log in.");
+
+      const response = await fetch(`${API_BASE_URL}/leave-exceptions`, {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(leaveData),
+      });
+
+      const data = await response.json();
+      console.log(data);
+
+      if (!response.ok) {
+        if (response.status === 422) {
+          const errorMessages = Object.values(data.errors || {}).flat().join(' ');
+          throw new Error(errorMessages || 'Validation failed');
+        }
+        throw new Error(data.message || 'Failed to create leave record');
+      }
+
+      return data;
+    } catch (error) {
+      console.error("createLeave Error:", error);
+      throw new Error(error.message || "Network error occurred");
+    }
+  },
+
+  /**
+   * GET /api/leaves
+   * Fetches leave records with optional filters
+   */
+  getLeaves: async (filters = {}, page = 1) => {
+    if (USE_MOCK_DATA) {
+      return new Promise((resolve) => {
+        setTimeout(() => {
+          resolve({
+            success: true,
+            data: {
+              leaves: [],
+              pagination: { current_page: 1, per_page: 20, total: 0, last_page: 1 }
+            }
+          });
+        }, 500);
+      });
+    }
+
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) throw new Error("No auth token found. Please log in.");
+
+      const queryParams = new URLSearchParams({ page, per_page: 20 });
+      Object.keys(filters).forEach(key => {
+        if (filters[key]) queryParams.append(key, filters[key]);
+      });
+
+      const response = await fetch(`${API_BASE_URL}/leaves?${queryParams}`, {
+        method: "GET",
+        headers: { Accept: "application/json", Authorization: `Bearer ${token}` },
+      });
+
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.message || "Failed to fetch leaves");
+      return data;
+    } catch (error) {
+      console.error("getLeaves Error:", error);
+      throw new Error(error.message || "Network error occurred");
+    }
+  },
 };

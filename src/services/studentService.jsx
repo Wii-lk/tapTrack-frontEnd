@@ -77,6 +77,7 @@ const normalizeStudent = (student) => {
   // Data for Tables (camelCase)
   const normalized = {
     id: student.id,
+    index_no: student.index_no,
     userId: student.user_id,
     firstName: student.first_name,
     lastName: student.last_name,
@@ -277,6 +278,7 @@ const studentService = {
         },
         body: JSON.stringify(apiData), // Send stringified JSON
       });
+      console.log(apiData);
       const data = await response.json();
       if (!response.ok) {
            if (response.status === 422) {

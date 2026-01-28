@@ -1,5 +1,5 @@
 import React from 'react';
-import { Edit2, Trash2, Eye, User } from 'lucide-react';
+import { Edit2, Trash2, Eye, User, Hash } from 'lucide-react'; // Added Hash icon
 
 const TeacherTable = ({ teachers, onEdit, onDelete, onView, loading }) => {
     // --- Loading State ---
@@ -33,6 +33,12 @@ const TeacherTable = ({ teachers, onEdit, onDelete, onView, loading }) => {
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                 Teacher Name
                             </th>
+                            
+                            {/* NEW COLUMN: Employee ID */}
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Employee ID
+                            </th>
+
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                 Designation
                             </th>
@@ -49,19 +55,17 @@ const TeacherTable = ({ teachers, onEdit, onDelete, onView, loading }) => {
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
                         {teachers.map((teacher) => {
-                            // Uses: firstName, lastName, designation, phone, status
                             const firstNameInitial = teacher.firstName ? teacher.firstName.charAt(0) : '';
                             const lastNameInitial = teacher.lastName ? teacher.lastName.charAt(0) : '';
                             const isActive = teacher.status === 'active';
 
                             return (
-                                <tr key={teacher.id} className="hover:bg-gray-50">
+                                <tr key={teacher.id} className="hover:bg-gray-50 transition-colors">
                                     <td className="px-6 py-4 whitespace-nowrap">
                                         <div className="flex items-center">
-                                            <div className="flex-shrink-0 h-10 w-10 bg-blue-100 rounded-full flex items-center justify-center">
-                                                <span className="text-blue-600 font-semibold">
-                                                    {firstNameInitial}
-                                                    {lastNameInitial}
+                                            <div className="flex-shrink-0 h-10 w-10 bg-blue-100 rounded-full flex items-center justify-center border border-blue-200">
+                                                <span className="text-blue-600 font-bold text-sm">
+                                                    {firstNameInitial}{lastNameInitial}
                                                 </span>
                                             </div>
                                             <div className="ml-4">
@@ -72,6 +76,16 @@ const TeacherTable = ({ teachers, onEdit, onDelete, onView, loading }) => {
                                             </div>
                                         </div>
                                     </td>
+
+                                    {/* NEW DATA CELL: Employee ID */}
+                                    <td className="px-6 py-4 whitespace-nowrap">
+                                        <div className="flex items-center text-sm text-gray-900 font-mono bg-gray-50 px-2 py-1 rounded w-fit border border-gray-100">
+                                            <Hash size={14} className="mr-1 text-gray-400" />
+                                            {/* Display employee_no if available, fallback to unique_no */}
+                                            {teacher.employee_no || teacher.unique_no || 'N/A'}
+                                        </div>
+                                    </td>
+
                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                         {teacher.designation}
                                     </td>
@@ -93,21 +107,21 @@ const TeacherTable = ({ teachers, onEdit, onDelete, onView, loading }) => {
                                         <div className="flex space-x-2">
                                             <button
                                                 onClick={() => onView(teacher)}
-                                                className="text-blue-600 hover:text-blue-900"
+                                                className="text-blue-600 hover:text-blue-900 bg-blue-50 p-1.5 rounded hover:bg-blue-100 transition-colors"
                                                 title="View Details"
                                             >
                                                 <Eye size={18} />
                                             </button>
                                             <button
                                                 onClick={() => onEdit(teacher)}
-                                                className="text-orange-600 hover:text-orange-900"
+                                                className="text-orange-600 hover:text-orange-900 bg-orange-50 p-1.5 rounded hover:bg-orange-100 transition-colors"
                                                 title="Edit"
                                             >
                                                 <Edit2 size={18} />
                                             </button>
                                             <button
                                                 onClick={() => onDelete(teacher)}
-                                                className="text-red-600 hover:text-red-900"
+                                                className="text-red-600 hover:text-red-900 bg-red-50 p-1.5 rounded hover:bg-red-100 transition-colors"
                                                 title="Delete"
                                             >
                                                 <Trash2 size={18} />

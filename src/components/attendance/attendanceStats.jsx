@@ -9,7 +9,7 @@ import { Users, UserCheck, UserX, Clock, ClipboardMinus, UserMinus } from 'lucid
 
 // Built-in StatCard component to ensure proper display
 const StatCard = ({ title, value, icon, bgColor, textColor }) => {
-  console.log('StatCard rendering:', { title, value }); // Debug log
+  // console.log('StatCard rendering:', { title, value }); // Debug log
   
   return (
     <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">

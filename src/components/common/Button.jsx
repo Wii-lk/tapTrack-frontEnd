@@ -1,33 +1,30 @@
 import React from "react";
+import { Loader2 } from "lucide-react";
 
 const Button = ({
   children,
   onClick,
   type = "button",
   variant = "maroon",
-  size = "full", // Added size prop
+  size = "full",
   disabled = false,
   loading = false,
   className = "",
 }) => {
-  // Removed width and padding from baseClasses
-  const baseClasses =
-    "rounded-lg font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2";
+  
+  const baseClasses = "relative flex items-center justify-center rounded-xl font-semibold transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 active:scale-[0.98]";
 
-  // Maps size prop to Tailwind classes for width and padding
   const sizes = {
-    full: "w-full py-2 px-4",
-    half: "w-1/2 py-2 px-4",
-    small: "w-fit py-1 px-3", // "very small" maps to small
+    full: "w-full py-3 px-4 text-sm",
+    half: "w-1/2 py-2.5 px-4 text-sm",
+    small: "w-fit py-2 px-4 text-xs",
   };
 
   const variants = {
-    primary:
-      "bg-blue-600 text-white hover:bg-blue-700 focus:ring-blue-500 disabled:bg-blue-400",
-    secondary:
-      "bg-gray-200 text-gray-700 hover:bg-gray-300 focus:ring-gray-500",
-    maroon:
-      "bg-[#800000] text-white hover:bg-[#990000] focus:ring-[#800000] disabled:bg-[#b36666]",
+    primary: "bg-blue-600 text-white hover:bg-blue-700 shadow-lg shadow-blue-600/20 focus:ring-blue-500 disabled:bg-blue-300",
+    secondary: "bg-white text-gray-700 border border-gray-200 hover:bg-gray-50 hover:border-gray-300 focus:ring-gray-200",
+    maroon: "bg-[#800000] text-white hover:bg-[#660000] shadow-lg shadow-red-900/20 focus:ring-[#800000] disabled:bg-[#800000]/50 disabled:shadow-none",
+    ghost: "bg-transparent text-[#800000] hover:bg-red-50 disabled:text-gray-400",
   };
 
   return (
@@ -35,10 +32,16 @@ const Button = ({
       type={type}
       onClick={onClick}
       disabled={disabled || loading}
-      // Added sizes[size] to the className string
-      className={`${baseClasses} ${sizes[size]} ${variants[variant]} ${className}`}
+      className={`${baseClasses} ${sizes[size]} ${variants[variant]} ${className} ${disabled ? 'cursor-not-allowed' : 'cursor-pointer'}`}
     >
-      {loading ? "Loading..." : children}
+      {loading ? (
+        <>
+          <Loader2 className="animate-spin -ml-1 mr-2 h-4 w-4" />
+          Processing...
+        </>
+      ) : (
+        children
+      )}
     </button>
   );
 };

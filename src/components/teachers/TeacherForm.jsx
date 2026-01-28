@@ -1,16 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { Upload, User } from 'lucide-react';
+import { Upload, User, Hash, Mail, Phone, Calendar, Briefcase, MapPin, Lock, UserCheck } from 'lucide-react';
 import Button from '../common/Button';
 import Input from '../common/Input';
 import Select from '../common/Select';
 import TextArea from '../common/TextArea';
 
-// --- ADDED ---
 // Helper to get today's date in YYYY-MM-DD format
 const getTodayDate = () => {
   const today = new Date();
   const year = today.getFullYear();
-  const month = String(today.getMonth() + 1).padStart(2, '0'); // Months are 0-indexed
+  const month = String(today.getMonth() + 1).padStart(2, '0');
   const day = String(today.getDate()).padStart(2, '0');
   return `${year}-${month}-${day}`;
 };
@@ -24,26 +23,26 @@ const getInitialState = () => ({
   gender: '',
   date_of_birth: '',
   address: '',
-  photo: null, // This will hold the File object
-  unique_no: '',
+  photo: null,
+  unique_no: '',      // Existing RFID/Unique ID
+  employee_no: '',    // <--- NEW FIELD
   email: '',
   phone_no: '',
   position: '',
   qualification: '',
   basic_salary: '',
   parent_staff_id: '',
-  hire_date: getTodayDate(), // <-- MODIFIED: Prefills today's date
+  hire_date: getTodayDate(),
   is_active: 1,
 });
 
 const TeacherForm = ({ teacher, onSubmit, onCancel, loading }) => {
-  // The form's internal state uses snake_case, matching the API
   const [formData, setFormData] = useState(getInitialState());
   const [photoPreview, setPhotoPreview] = useState('');
 
   useEffect(() => {
     if (teacher) {
-      // This runs when you're editing an existing teacher
+      // Edit Mode: Populate form with teacher data
       setFormData({
         first_name: teacher.firstName || '',
         last_name: teacher.lastName || '',
@@ -52,28 +51,27 @@ const TeacherForm = ({ teacher, onSubmit, onCancel, loading }) => {
         gender: teacher.gender || '',
         date_of_birth: teacher.date_of_birth || '',
         address: teacher.address || '',
-        photo: null, // Always reset file input
+        photo: null, 
         unique_no: teacher.unique_no || '',
+        employee_no: teacher.employee_no || '', // <--- Load from prop
         email: teacher.email || '',
         phone_no: teacher.phone || '',
         position: teacher.designation || '',
         qualification: teacher.qualification || '',
         basic_salary: teacher.basic_salary || '',
         parent_staff_id: teacher.parent_staff_id || '',
-        hire_date: teacher.hire_date || '', // This will override the default
-        // --- THIS IS THE FIX ---
-        // Convert the incoming boolean (true/false) to a number (1/0)
-        is_active: teacher.is_active === false ? 0 : 1,
+        hire_date: teacher.hire_date || '',
+        // Handle status conversion (Active/Inactive string -> 1/0)
+        is_active: teacher.status === 'active' || teacher.is_active === true || teacher.is_active === 1 ? 1 : 0,
       });
-      setPhotoPreview(''); // Clear preview on edit
+      setPhotoPreview(''); // Clear preview or set to existing URL if you have it
     } else {
-      // This runs when you're adding a new teacher (will have today's date)
+      // Create Mode: Reset form
       setFormData(getInitialState());
       setPhotoPreview('');
     }
-  }, [teacher]); // Rerun this logic when the teacher prop changes
+  }, [teacher]);
 
-  
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
     setFormData(prev => ({
@@ -93,7 +91,6 @@ const TeacherForm = ({ teacher, onSubmit, onCancel, loading }) => {
       };
       reader.readAsDataURL(file);
     } else {
-      // Clear preview if no file is selected
       setFormData(prev => ({ ...prev, photo: null }));
       setPhotoPreview('');
     }
@@ -101,33 +98,33 @@ const TeacherForm = ({ teacher, onSubmit, onCancel, loading }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    // Pass the plain JavaScript state object (snake_case) to the parent.
-    // The service layer will handle formatting it as JSON or FormData.
     onSubmit(formData);
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4 md:space-y-6 max-h-[80vh] overflow-y-auto">
+    <form onSubmit={handleSubmit} className="space-y-4 md:space-y-6 max-h-[80vh] overflow-y-auto p-1">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
-        {/* Personal Information */}
-        <div className="md:col-span-2">
-          <h3 className="text-lg font-medium text-gray-900 mb-3">
+        
+        {/* --- SECTION 1: PERSONAL INFORMATION --- */}
+        <div className="md:col-span-2 border-b border-gray-100 pb-2 mb-2">
+          <h3 className="text-lg font-bold text-gray-800 flex items-center gap-2">
+            <User size={20} className="text-blue-600" />
             Personal Information
           </h3>
         </div>
 
         {/* Photo Upload */}
-        <div className="md:col-span-2 flex flex-col sm:flex-row items-center gap-4">
+        <div className="md:col-span-2 flex flex-col sm:flex-row items-center gap-4 mb-4">
           <div className="flex-shrink-0">
             {photoPreview ? (
               <img
                 src={photoPreview}
                 alt="Preview"
-                className="h-16 w-16 md:h-20 md:w-20 rounded-full object-cover"
+                className="h-20 w-20 rounded-full object-cover border-4 border-gray-50 shadow-sm"
               />
             ) : (
-              <div className="h-16 w-16 md:h-20 md:w-20 bg-gray-200 rounded-full flex items-center justify-center">
-                <User size={20} className="text-gray-400" />
+              <div className="h-20 w-20 bg-gray-100 rounded-full flex items-center justify-center border-2 border-dashed border-gray-300">
+                <Upload size={24} className="text-gray-400" />
               </div>
             )}
           </div>
@@ -139,7 +136,7 @@ const TeacherForm = ({ teacher, onSubmit, onCancel, loading }) => {
               type="file"
               accept="image/*"
               onChange={handleFileChange}
-              className="block w-full text-sm text-gray-500 file:mr-2 file:py-1.5 file:px-3 file:rounded file:border-0 file:text-xs file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+              className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer"
             />
           </div>
         </div>
@@ -150,6 +147,7 @@ const TeacherForm = ({ teacher, onSubmit, onCancel, loading }) => {
           value={formData.first_name}
           onChange={handleChange}
           required
+          icon={User}
         />
 
         <Input
@@ -158,25 +156,7 @@ const TeacherForm = ({ teacher, onSubmit, onCancel, loading }) => {
           value={formData.last_name}
           onChange={handleChange}
           required
-        />
-
-        <Input
-          label="Username *"
-          name="username"
-          value={formData.username}
-          onChange={handleChange}
-          required
-          disabled={!!teacher}
-        />
-
-        <Input
-          label="Password *"
-          name="password"
-          type="password"
-          value={formData.password}
-          onChange={handleChange}
-          required={!teacher}
-          placeholder={teacher ? 'Leave blank to keep current password' : ''}
+          icon={User}
         />
 
         <Select
@@ -197,34 +177,88 @@ const TeacherForm = ({ teacher, onSubmit, onCancel, loading }) => {
           type="date"
           value={formData.date_of_birth}
           onChange={handleChange}
+          icon={Calendar}
         />
 
-        {/* Professional Information */}
         <div className="md:col-span-2">
-          <h3 className="text-lg font-medium text-gray-900 mb-3">
-            Professional Information
+          <TextArea
+            label="Address"
+            name="address"
+            value={formData.address}
+            onChange={handleChange}
+            rows={2}
+            icon={MapPin}
+          />
+        </div>
+
+        {/* --- SECTION 2: LOGIN CREDENTIALS --- */}
+        <div className="md:col-span-2 border-b border-gray-100 pb-2 mb-2 mt-4">
+          <h3 className="text-lg font-bold text-gray-800 flex items-center gap-2">
+            <Lock size={20} className="text-blue-600" />
+            Login Credentials
           </h3>
         </div>
 
-        {/* --- MODIFIED: Conditionally render Unique ID --- */}
-        {/* This field will ONLY appear in edit mode (when 'teacher' prop exists) */}
+        <Input
+          label="Username *"
+          name="username"
+          value={formData.username}
+          onChange={handleChange}
+          required
+          disabled={!!teacher} // Disable username edit
+          icon={UserCheck}
+        />
+
+        <Input
+          label={teacher ? "New Password" : "Password *"}
+          name="password"
+          type="password"
+          value={formData.password}
+          onChange={handleChange}
+          required={!teacher}
+          placeholder={teacher ? 'Leave blank to keep current password' : ''}
+          icon={Lock}
+        />
+
+        {/* --- SECTION 3: PROFESSIONAL DETAILS --- */}
+        <div className="md:col-span-2 border-b border-gray-100 pb-2 mb-2 mt-4">
+          <h3 className="text-lg font-bold text-gray-800 flex items-center gap-2">
+            <Briefcase size={20} className="text-blue-600" />
+            Professional Details
+          </h3>
+        </div>
+
+        {/* 🟢 NEW FIELD: Employee ID */}
+        <Input
+          label="Employee ID *"
+          name="employee_no"
+          value={formData.employee_no}
+          onChange={handleChange}
+          required
+          placeholder="e.g. EMP-001"
+          icon={Hash}
+        />
+
+        {/* Conditionally Show Unique ID (RFID) only in edit mode */}
         {!!teacher && (
           <Input
-            label="Unique ID"
+            label="Unique ID (System/RFID)"
             name="unique_no"
             value={formData.unique_no}
             onChange={handleChange}
-            disabled={true} // Unique ID shouldn't be editable
+            disabled={true} 
+            icon={Hash}
           />
         )}
 
         <Input
-          label="Email *"
+          label="Email Address *"
           name="email"
           type="email"
           value={formData.email}
           onChange={handleChange}
           required
+          icon={Mail}
         />
 
         <Input
@@ -233,17 +267,20 @@ const TeacherForm = ({ teacher, onSubmit, onCancel, loading }) => {
           value={formData.phone_no}
           onChange={handleChange}
           required
+          icon={Phone}
         />
 
         <Input
-          label="Position"
+          label="Position / Designation"
           name="position"
           value={formData.position}
           onChange={handleChange}
+          placeholder="e.g. Senior Teacher"
+          icon={Briefcase}
         />
 
         <Input
-          label="Basic Salary *"
+          label="Basic Salary (LKR) *"
           name="basic_salary"
           type="number"
           step="0.01"
@@ -258,6 +295,7 @@ const TeacherForm = ({ teacher, onSubmit, onCancel, loading }) => {
           type="date"
           value={formData.hire_date}
           onChange={handleChange}
+          icon={Calendar}
         />
 
         <div className="md:col-span-2">
@@ -267,40 +305,35 @@ const TeacherForm = ({ teacher, onSubmit, onCancel, loading }) => {
             value={formData.qualification}
             onChange={handleChange}
             rows={3}
-            placeholder="Enter qualifications separated by commas"
+            placeholder="Enter academic degrees, certifications, etc."
           />
         </div>
 
-        <div className="md:col-span-2">
-          <TextArea
-            label="Address"
-            name="address"
-            value={formData.address}
-            onChange={handleChange}
-            rows={2}
-          />
-        </div>
-
-        {/* Status */}
-        <div className="md:col-span-2 flex items-center">
+        {/* Status Toggle */}
+        <div className="md:col-span-2 bg-gray-50 p-3 rounded-lg flex items-center border border-gray-200">
           <input
             type="checkbox"
+            id="is_active"
             name="is_active"
-            checked={formData.is_active}
+            checked={formData.is_active === 1}
             onChange={handleChange}
-            className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+            className="h-5 w-5 text-blue-600 focus:ring-blue-500 border-gray-300 rounded cursor-pointer"
           />
-          <label className="ml-2 block text-sm text-gray-900">
-            Active Teacher
+          <label htmlFor="is_active" className="ml-3 block text-sm font-medium text-gray-900 cursor-pointer select-none">
+            Active Staff Member
+            <span className="block text-xs text-gray-500 font-normal">
+              Disable this to restrict system access without deleting the record.
+            </span>
           </label>
         </div>
+
       </div>
 
       {/* Form Actions */}
-      <div className="flex flex-col-reverse sm:flex-row justify-end gap-3 pt-4 border-t">
+      <div className="flex flex-col-reverse sm:flex-row justify-end gap-3 pt-6 mt-6 border-t border-gray-100">
         <Button
           type="button"
-          variant="outline"
+          variant="secondary"
           onClick={onCancel}
           disabled={loading}
           className="w-full sm:w-auto"
@@ -312,7 +345,7 @@ const TeacherForm = ({ teacher, onSubmit, onCancel, loading }) => {
           loading={loading}
           className="w-full sm:w-auto"
         >
-          {teacher ? 'Update Teacher' : 'Create Teacher'}
+          {teacher ? 'Update Staff Member' : 'Create Staff Member'}
         </Button>
       </div>
     </form>
