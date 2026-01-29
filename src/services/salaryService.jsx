@@ -5,7 +5,7 @@
  */
 
 // Base URL for your API
-const API_BASE_URL = 'process.env.REACT_APP_API_BASE_URL';
+const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
 
 // Set to true to use mock data
 export const USE_MOCK_DATA = false;

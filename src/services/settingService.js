@@ -3,7 +3,7 @@
  * Manages System Configuration and Salary Rules
  */
 
-const API_BASE_URL = 'process.env.REACT_APP_API_BASE_URL';
+const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
 export const USE_MOCK_DATA = false; // Toggle for backend integration
 
 // --- MOCK DATA ---

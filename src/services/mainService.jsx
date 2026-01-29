@@ -1,7 +1,7 @@
 import { loaderController } from './loaderController';
 
 // Base URL for your API
-const API_BASE_URL = 'process.env.REACT_APP_API_BASE_URL';
+const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
 
 /**
  * Universal API Wrapper that handles:
