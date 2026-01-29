@@ -1,5 +1,5 @@
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api';
-// Updated temporary credentials to use 'username'
+const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || '/api';
+
 const TEMP_CREDENTIALS = {
   username: 'admin',
   password: 'admin123',
@@ -12,14 +12,13 @@ const apiService = {
     if (USE_TEMP_LOGIN) {
       return new Promise((resolve, reject) => {
         setTimeout(() => {
-
           if (username === TEMP_CREDENTIALS.username && password === TEMP_CREDENTIALS.password) {
             resolve({
               user: {
                 id: 1,
                 name: 'Admin User',
                 email: 'admin@school.com',
-                username: username, // Added username to mock user
+                username: username,
                 role: 'admin',
               },
               token: 'temporary-token-12345',
@@ -27,7 +26,7 @@ const apiService = {
           } else {
             reject(new Error('Invalid username or password'));
           }
-        }, 1000); // Simulate network delay
+        }, 1000);
       });
     }
 
@@ -35,14 +34,12 @@ const apiService = {
       const response = await fetch(`${API_BASE_URL}/login`, {
         method: 'POST',
         headers: {
-          'Authorization':`Bearer ${token}`,
           'Content-Type': 'application/json',
           'Accept': 'application/json',
         },
-      
-        body: JSON.stringify({ "username": username, password }),
+        body: JSON.stringify({ username, password }),
       });
-      console.log(JSON.stringify({ "username": username, password }));
+      
       const data = await response.json();
 
       if (!response.ok) {
@@ -50,8 +47,8 @@ const apiService = {
       }
 
       return {
-        user: data.data.user,
-        token: data.data.token
+        user: data.data ? data.data.user : data.user,
+        token: data.data ? data.data.token : data.token
       };
     } catch (error) {
       throw new Error(error.message || 'Network error occurred');
@@ -59,12 +56,9 @@ const apiService = {
   },
 
   forgotPassword: async (email) => {
-    // TEMPORARY FORGOT PASSWORD - Remove this when backend is ready
     if (USE_TEMP_LOGIN) {
       return new Promise((resolve, reject) => {
         setTimeout(() => {
-          // Note: Forgot Password might still use email.
-          // We are just checking against a mock email here.
           if (email === 'admin@school.com') { 
             resolve({
               message: 'Password reset link sent to your email',
@@ -72,11 +66,10 @@ const apiService = {
           } else {
             reject(new Error('Email not found in our system'));
           }
-        }, 1000); // Simulate network delay
+        }, 1000);
       });
     }
 
-    // REAL API CALL - This will run when USE_TEMP_LOGIN is false
     try {
       const response = await fetch(`${API_BASE_URL}/forgot-password`, {
         method: 'POST',
