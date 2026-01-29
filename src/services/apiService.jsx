@@ -1,22 +1,18 @@
-const API_BASE_URL = '/api';
-
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api';
 // Updated temporary credentials to use 'username'
 const TEMP_CREDENTIALS = {
   username: 'admin',
   password: 'admin123',
 };
 
-// Set to true to use temporary credentials, false to use real API
 const USE_TEMP_LOGIN = false;
 
 const apiService = {
-  // Changed parameter from 'email' to 'username'
   login: async (username, password) => {
-    // TEMPORARY LOGIN - Remove this when backend is ready
     if (USE_TEMP_LOGIN) {
       return new Promise((resolve, reject) => {
         setTimeout(() => {
-          // Updated mock check to use 'username'
+
           if (username === TEMP_CREDENTIALS.username && password === TEMP_CREDENTIALS.password) {
             resolve({
               user: {
@@ -35,15 +31,15 @@ const apiService = {
       });
     }
 
-    // REAL API CALL - This will run when USE_TEMP_LOGIN is false
     try {
       const response = await fetch(`${API_BASE_URL}/login`, {
         method: 'POST',
         headers: {
+          'Authorization':`Bearer ${token}`,
           'Content-Type': 'application/json',
           'Accept': 'application/json',
         },
-        // Use the 'username' parameter in the body
+      
         body: JSON.stringify({ "username": username, password }),
       });
       console.log(JSON.stringify({ "username": username, password }));
