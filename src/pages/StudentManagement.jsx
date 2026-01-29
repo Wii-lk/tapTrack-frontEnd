@@ -143,7 +143,7 @@ const StudentManagement = () => {
     <div className="space-y-6">
       {/* Header */}
       {/* Header */}
-<div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pt-4 sm:pt-0">
   <div>
     <h2 className="text-xl md:text-2xl font-bold text-gray-800">Student Management</h2>
     <p className="text-sm text-gray-600 mt-1">Manage all students in the system</p>

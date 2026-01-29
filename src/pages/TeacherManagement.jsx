@@ -152,16 +152,16 @@ const TeacherManagement = () => {
   return (
     <div className="space-y-4 md:space-y-6 p-4 md:p-0">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
-        <div className="text-center sm:text-left">
+      <div className="flex flex-col sm:flex-row sm:justify-between items-start sm:items-center gap-4 pt-4 sm:pt-0">
+        <div className="text-left">
           <h2 className="text-xl sm:text-2xl font-bold text-gray-800">Teacher Management</h2>
           <p className="text-sm sm:text-base text-gray-600 mt-1">Manage all teachers in the system</p>
         </div>
         <Button
           onClick={handleAddNew}
-          className="w-full sm:w-[150px]"
+          className="w-full sm:w-auto"
         >
-          <UserPlus size={20} className="mr-2 inline" />
+          <UserPlus size={18} className="mr-2 inline" />
           Add New Teacher
         </Button>
       </div>

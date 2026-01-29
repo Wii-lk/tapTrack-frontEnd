@@ -180,7 +180,7 @@ const ManageSalaryPage = () => {
               <span className="bg-blue-100 text-blue-600 w-6 h-6 flex items-center justify-center rounded-full text-xs">1</span> Select Period
             </h3>
             <form onSubmit={handleCalculate} className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-medium text-gray-500 mb-1">Month</label>
                   <select value={month} onChange={(e) => setMonth(e.target.value)} disabled={step > 1} className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-blue-500">

@@ -16,9 +16,61 @@ const StaffSalaryListTable = ({ staffList = [], loading, onGenerateClick }) => {
 
   const safeStaffList = Array.isArray(staffList) ? staffList : [];
 
+  // Mobile Staff Card
+  const StaffCard = ({ staff }) => (
+    <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-100 mb-3">
+        <div className="flex justify-between items-start mb-2">
+            <div>
+                <h4 className="text-sm font-semibold text-gray-900">{staff.name}</h4>
+                <div className="text-xs text-gray-500 font-mono mt-0.5">
+                    {staff.employee_no || staff.unique_no || staff.user_id}
+                </div>
+            </div>
+            <span className="bg-blue-50 text-blue-700 px-2 py-0.5 rounded text-xs font-medium border border-blue-100">
+                {staff.role || 'Staff'}
+            </span>
+        </div>
+        
+        <div className="flex justify-between items-center py-2 border-t border-b border-gray-50 my-2">
+             <span className="text-xs text-gray-500">Basic Salary</span>
+             <span className="text-sm font-bold text-gray-800 font-mono">
+                {formatCurrency(staff.basic_salary)}
+             </span>
+        </div>
+
+        <Button 
+            variant="outline" 
+            size="small"
+            className="w-full justify-center hover:border-green-500 hover:text-green-600 hover:bg-green-50 transition-colors"
+            onClick={() => onGenerateClick(staff.user_id)}
+        >
+            <Calculator size={14} className="mr-2" />
+            Process Salary
+        </Button>
+    </div>
+  );
+
   return (
-    <div className="bg-white rounded-lg shadow-md overflow-hidden">
-      <div className="overflow-x-auto">
+    <div>
+        {/* Mobile View */}
+        <div className="block md:hidden">
+            {loading && (
+                <div className="text-center py-8">
+                    <Loader2 size={24} className="mx-auto animate-spin text-orange-600" />
+                    <p className="mt-2 text-sm text-gray-500">Loading staff list...</p>
+                </div>
+            )}
+            {!loading && safeStaffList.length === 0 && (
+                <div className="text-center py-8 text-sm text-gray-500">No staff members found.</div>
+            )}
+            {!loading && safeStaffList.map((staff) => (
+                <StaffCard key={staff.user_id} staff={staff} />
+            ))}
+        </div>
+
+        {/* Desktop Table View */}
+        <div className="hidden md:block bg-white rounded-lg shadow-md overflow-hidden">
+        <div className="overflow-x-auto">
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
             <tr>
@@ -98,6 +150,7 @@ const StaffSalaryListTable = ({ staffList = [], loading, onGenerateClick }) => {
             ))}
           </tbody>
         </table>
+      </div>
       </div>
     </div>
   );

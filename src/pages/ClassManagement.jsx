@@ -153,13 +153,13 @@ const ClassManagement = () => {
         </div>
 
         {/* Action Bar */}
-        <div className="flex justify-between items-center mb-6">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
           <h2 className="text-xl font-bold text-gray-800">
             {activeTab === 'grades' ? 'Grade List' : 'Subject List'}
           </h2>
           <button
             onClick={() => handleOpenModal()}
-            className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition"
+            className="w-full sm:w-auto flex items-center justify-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition"
           >
             <Plus size={18} />
             Add {activeTab === 'grades' ? 'Grade' : 'Subject'}
@@ -172,79 +172,144 @@ const ClassManagement = () => {
         ) : (
           <div className="overflow-x-auto">
             {/* GRADES TABLE */}
+            {/* GRADES SECTION */}
             {activeTab === 'grades' && (
-              <table className="w-full text-left border-collapse">
-                <thead>
-                  <tr className="bg-gray-50 text-gray-600 uppercase text-xs tracking-wider">
-                    <th className="p-4 border-b">Class Name</th>
-                    <th className="p-4 border-b">Type</th>
-                    <th className="p-4 border-b">Monthly Fee</th>
-                    <th className="p-4 border-b">Students</th>
-                    <th className="p-4 border-b">Status</th>
-                    <th className="p-4 border-b text-right">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100">
+              <>
+                {/* Mobile Cards for Grades */}
+                <div className="block md:hidden space-y-3">
                   {grades.map((grade) => (
-                    <tr key={grade.id} className="hover:bg-gray-50 transition">
-                      <td className="p-4 font-medium text-gray-800">
-                        {grade.parent_grade_id && <span className="text-gray-400 mr-2">↳</span>}
-                        {grade.name}
-                      </td>
-                      <td className="p-4 text-sm text-gray-600">
-                        {grade.parent_grade_id ? 'Section' : 'Main Grade'}
-                      </td>
-                      <td className="p-4 text-sm text-gray-600">
-                        {grade.monthly_fee ? parseFloat(grade.monthly_fee).toFixed(2) : '-'}
-                      </td>
-                      <td className="p-4 text-sm text-gray-600">
-                        {grade.student_count || 0}
-                      </td>
-                      <td className="p-4">
-                        <StatusBadge isActive={grade.is_active} />
-                      </td>
-                      <td className="p-4 text-right">
-                        <button 
-                          onClick={() => handleOpenModal(grade)}
-                          className="text-gray-400 hover:text-blue-600"
-                        >
-                          <Edit2 size={18} />
-                        </button>
-                      </td>
-                    </tr>
+                    <div key={grade.id} className="bg-white p-4 rounded-lg shadow-sm border border-gray-100">
+                      <div className="flex justify-between items-start mb-2">
+                        <div>
+                          <h4 className="font-semibold text-gray-800 flex items-center">
+                            {grade.parent_grade_id && <span className="text-gray-400 mr-2">↳</span>}
+                            {grade.name}
+                          </h4>
+                          <span className="text-xs text-gray-500">{grade.parent_grade_id ? 'Section' : 'Main Grade'}</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                             <StatusBadge isActive={grade.is_active} />
+                             <button 
+                                onClick={() => handleOpenModal(grade)}
+                                className="p-1 text-gray-400 hover:text-blue-600 bg-gray-50 rounded"
+                              >
+                                <Edit2 size={16} />
+                              </button>
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-2 gap-2 text-xs text-gray-600 border-t border-gray-50 pt-2 mt-2">
+                          <div>
+                            <span className="block text-gray-400">Monthly Fee</span>
+                             {grade.monthly_fee ? parseFloat(grade.monthly_fee).toFixed(2) : '-'}
+                          </div>
+                          <div>
+                            <span className="block text-gray-400">Students</span>
+                            {grade.student_count || 0}
+                          </div>
+                      </div>
+                    </div>
                   ))}
-                  {grades.length === 0 && (
-                    <tr><td colSpan="6" className="p-8 text-center text-gray-500">No grades found.</td></tr>
-                  )}
-                </tbody>
-              </table>
+                  {grades.length === 0 && <div className="text-center py-8 text-gray-500">No grades found.</div>}
+                </div>
+
+                {/* Desktop Table for Grades */}
+                <div className="hidden md:block">
+                  <table className="w-full text-left border-collapse">
+                    <thead>
+                      <tr className="bg-gray-50 text-gray-600 uppercase text-xs tracking-wider">
+                        <th className="p-4 border-b">Class Name</th>
+                        <th className="p-4 border-b">Type</th>
+                        <th className="p-4 border-b">Monthly Fee</th>
+                        <th className="p-4 border-b">Students</th>
+                        <th className="p-4 border-b">Status</th>
+                        <th className="p-4 border-b text-right">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100">
+                      {grades.map((grade) => (
+                        <tr key={grade.id} className="hover:bg-gray-50 transition">
+                          <td className="p-4 font-medium text-gray-800">
+                            {grade.parent_grade_id && <span className="text-gray-400 mr-2">↳</span>}
+                            {grade.name}
+                          </td>
+                          <td className="p-4 text-sm text-gray-600">
+                            {grade.parent_grade_id ? 'Section' : 'Main Grade'}
+                          </td>
+                          <td className="p-4 text-sm text-gray-600">
+                            {grade.monthly_fee ? parseFloat(grade.monthly_fee).toFixed(2) : '-'}
+                          </td>
+                          <td className="p-4 text-sm text-gray-600">
+                            {grade.student_count || 0}
+                          </td>
+                          <td className="p-4">
+                            <StatusBadge isActive={grade.is_active} />
+                          </td>
+                          <td className="p-4 text-right">
+                            <button 
+                              onClick={() => handleOpenModal(grade)}
+                              className="text-gray-400 hover:text-blue-600"
+                            >
+                              <Edit2 size={18} />
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                      {grades.length === 0 && (
+                        <tr><td colSpan="6" className="p-8 text-center text-gray-500">No grades found.</td></tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </>
             )}
 
             {/* SUBJECTS TABLE */}
+            {/* SUBJECTS SECTION */}
             {activeTab === 'subjects' && (
-              <table className="w-full text-left border-collapse">
-                <thead>
-                  <tr className="bg-gray-50 text-gray-600 uppercase text-xs tracking-wider">
-                    <th className="p-4 border-b">Subject Name</th>
-                    <th className="p-4 border-b">Description</th>
-                    <th className="p-4 border-b">Status</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100">
+              <>
+                {/* Mobile Cards for Subjects */}
+                <div className="block md:hidden space-y-3">
                   {subjects.map((subject) => (
-                    <tr key={subject.id} className="hover:bg-gray-50 transition">
-                      <td className="p-4 font-medium text-gray-800">{subject.name}</td>
-                      <td className="p-4 text-sm text-gray-600">{subject.description || '-'}</td>
-                      <td className="p-4">
+                    <div key={subject.id} className="bg-white p-4 rounded-lg shadow-sm border border-gray-100">
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <h4 className="font-semibold text-gray-800">{subject.name}</h4>
+                          <p className="text-xs text-gray-500 mt-1 line-clamp-2">{subject.description || 'No description'}</p>
+                        </div>
                         <StatusBadge isActive={subject.is_active} />
-                      </td>
-                    </tr>
+                      </div>
+                    </div>
                   ))}
-                  {subjects.length === 0 && (
-                    <tr><td colSpan="3" className="p-8 text-center text-gray-500">No subjects found.</td></tr>
-                  )}
-                </tbody>
-              </table>
+                   {subjects.length === 0 && <div className="text-center py-8 text-gray-500">No subjects found.</div>}
+                </div>
+
+                {/* Desktop Table for Subjects */}
+                <div className="hidden md:block">
+                  <table className="w-full text-left border-collapse">
+                    <thead>
+                      <tr className="bg-gray-50 text-gray-600 uppercase text-xs tracking-wider">
+                        <th className="p-4 border-b">Subject Name</th>
+                        <th className="p-4 border-b">Description</th>
+                        <th className="p-4 border-b">Status</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100">
+                      {subjects.map((subject) => (
+                        <tr key={subject.id} className="hover:bg-gray-50 transition">
+                          <td className="p-4 font-medium text-gray-800">{subject.name}</td>
+                          <td className="p-4 text-sm text-gray-600">{subject.description || '-'}</td>
+                          <td className="p-4">
+                            <StatusBadge isActive={subject.is_active} />
+                          </td>
+                        </tr>
+                      ))}
+                      {subjects.length === 0 && (
+                        <tr><td colSpan="3" className="p-8 text-center text-gray-500">No subjects found.</td></tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </>
             )}
           </div>
         )}

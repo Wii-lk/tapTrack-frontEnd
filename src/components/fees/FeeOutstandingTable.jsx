@@ -10,8 +10,62 @@ const FeeOutstandingTable = ({ students, loading }) => {
   const formatCurrency = (val) => 
     new Intl.NumberFormat('en-LK', { style: 'currency', currency: 'LKR' }).format(val);
 
+  // Mobile Card Component
+  const OutstandingCard = ({ student }) => (
+    <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-100 mb-3">
+        <div className="flex justify-between items-start mb-2">
+            <div>
+                <h4 className="text-sm font-semibold text-gray-900">{student.student_name}</h4>
+                <div className="text-xs text-gray-500">ID: {student.student_id}</div>
+            </div>
+            <span className="px-2 py-1 bg-gray-100 rounded text-xs border border-gray-200">
+                {student.grade}
+            </span>
+        </div>
+        
+        <div className="flex justify-between items-center py-2 border-t border-b border-gray-50 my-2">
+             <div className="text-xs text-gray-500">
+                <div>{student.fees.length} Pending Invoice(s)</div>
+                {student.fees.length > 0 && (
+                    <div className="text-orange-600">Oldest: {new Date(student.fees[0].year, student.fees[0].month - 1).toLocaleString('default', { month: 'short' })}</div>
+                )}
+             </div>
+             <div className="text-sm font-bold text-orange-600">
+                {formatCurrency(student.total_outstanding)}
+             </div>
+        </div>
+
+        <Button 
+            size="small" 
+            className="w-full justify-center"
+            onClick={() => navigate(`/fees/collect/${student.student_id}`)}
+        >
+            <DollarSign size={14} className="mr-2" />
+            Collect Payment
+        </Button>
+    </div>
+  );
+
   return (
-    <div className="bg-white rounded-lg shadow-md overflow-hidden border border-gray-200">
+    <div>
+      {/* Mobile View */}
+      <div className="block md:hidden">
+        {loading && (
+            <div className="text-center py-8">
+               <Loader2 size={24} className="mx-auto animate-spin text-orange-600" />
+               <p className="mt-2 text-sm text-gray-500">Loading...</p>
+            </div>
+        )}
+        {!loading && students.length === 0 && (
+            <div className="text-center py-8 text-gray-500">No outstanding fees found.</div>
+        )}
+        {!loading && students.map((student) => (
+            <OutstandingCard key={student.student_id} student={student} />
+        ))}
+      </div>
+
+      {/* Desktop Table */}
+      <div className="hidden md:block bg-white rounded-lg shadow-md overflow-hidden border border-gray-200">
       <div className="overflow-x-auto">
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
@@ -77,6 +131,7 @@ const FeeOutstandingTable = ({ students, loading }) => {
             ))}
           </tbody>
         </table>
+      </div>
       </div>
     </div>
   );

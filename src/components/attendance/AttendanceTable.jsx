@@ -45,6 +45,42 @@ const AttendanceTable = ({ records, loading, userType }) => {
   
   const headers = userType === 'student' ? studentHeaders : staffHeaders;
 
+  const AttendanceCard = ({ record }) => {
+    const { user, status, check_in_time, check_out_time } = record;
+    const grade = userType === 'student' ? MOCK_GRADES.find(g => g.id === user.gradeId) : null;
+
+    return (
+      <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-100 mb-3">
+        <div className="flex justify-between items-start mb-2">
+          <div>
+            <h4 className="text-sm font-semibold text-gray-900">{user.name}</h4>
+            <div className="text-xs text-gray-500 mt-0.5">
+               {userType === 'student' ? user.unique_no : user.index_no}
+            </div>
+          </div>
+          <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full capitalize ${getStatusChip(status)}`}>
+              {status.replace('_', ' ')}
+          </span>
+        </div>
+        
+        <div className="grid grid-cols-2 gap-2 text-xs text-gray-500 border-t border-gray-50 pt-2">
+           <div>
+             <span className="block text-gray-400">{userType === 'student' ? 'Class' : 'Role'}</span>
+             {userType === 'student' ? (grade ? grade.name : 'N/A') : user.role}
+           </div>
+           <div>
+             <span className="block text-gray-400">In Time</span>
+             {formatTime(check_in_time)}
+           </div>
+           <div className="col-span-2">
+             <span className="block text-gray-400">Out Time</span>
+             {formatTime(check_out_time)}
+           </div>
+        </div>
+      </div>
+    );
+  };
+
   const renderRow = (record) => {
     const { user, status, check_in_time, check_out_time } = record;
 
@@ -84,7 +120,25 @@ const AttendanceTable = ({ records, loading, userType }) => {
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-md overflow-hidden">
+    <div>
+      {/* Mobile View */}
+      <div className="block md:hidden">
+        {loading && (
+            <div className="text-center py-8">
+               <Loader2 size={24} className="mx-auto animate-spin text-orange-600" />
+               <p className="mt-2 text-sm text-gray-500">Loading records...</p>
+            </div>
+        )}
+        {!loading && records.length === 0 && (
+            <div className="text-center py-8 text-gray-500 text-sm">No attendance records found.</div>
+        )}
+        {!loading && records.map((record) => (
+            <AttendanceCard key={record.id} record={record} />
+        ))}
+      </div>
+
+      {/* Desktop View */}
+      <div className="hidden md:block bg-white rounded-lg shadow-md overflow-hidden">
       <div className="overflow-x-auto">
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
@@ -115,6 +169,7 @@ const AttendanceTable = ({ records, loading, userType }) => {
             {!loading && records.map(renderRow)}
           </tbody>
         </table>
+      </div>
       </div>
     </div>
   );

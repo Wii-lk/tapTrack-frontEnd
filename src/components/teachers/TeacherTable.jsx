@@ -23,9 +23,88 @@ const TeacherTable = ({ teachers, onEdit, onDelete, onView, loading }) => {
         );
     }
 
+    // --- Mobile Card Component ---
+    const TeacherCard = ({ teacher }) => (
+        <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-100 mb-3">
+            <div className="flex justify-between items-start mb-3">
+                <div className="flex items-center">
+                    <div className="flex-shrink-0 h-10 w-10 bg-blue-100 rounded-full flex items-center justify-center border border-blue-200">
+                        <span className="text-blue-600 font-bold text-sm">
+                            {teacher.firstName ? teacher.firstName.charAt(0) : ''}
+                            {teacher.lastName ? teacher.lastName.charAt(0) : ''}
+                        </span>
+                    </div>
+                    <div className="ml-3">
+                        <h4 className="text-sm font-semibold text-gray-900">{teacher.fullName}</h4>
+                        <span
+                            className={`inline-flex px-2 py-0.5 text-xs font-medium rounded-full ${
+                                teacher.status === 'active'
+                                    ? 'bg-green-100 text-green-800'
+                                    : 'bg-red-100 text-red-800'
+                            }`}
+                        >
+                            {teacher.status}
+                        </span>
+                    </div>
+                </div>
+                <div className="flex space-x-1">
+                    <button
+                        onClick={() => onView(teacher)}
+                        className="p-1.5 text-blue-600 bg-blue-50 rounded hover:bg-blue-100"
+                        title="View Details"
+                    >
+                        <Eye size={16} />
+                    </button>
+                    <button
+                        onClick={() => onEdit(teacher)}
+                        className="p-1.5 text-orange-600 bg-orange-50 rounded hover:bg-orange-100"
+                        title="Edit"
+                    >
+                        <Edit2 size={16} />
+                    </button>
+                    <button
+                        onClick={() => onDelete(teacher)}
+                        className="p-1.5 text-red-600 bg-red-50 rounded hover:bg-red-100"
+                        title="Delete"
+                    >
+                        <Trash2 size={16} />
+                    </button>
+                </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-y-2 text-xs text-gray-600 border-t border-gray-100 pt-3">
+                <div className="col-span-2">
+                    <span className="block text-gray-400">Designation</span>
+                    {teacher.designation}
+                </div>
+                <div>
+                     <span className="block text-gray-400">Employee ID</span>
+                     {teacher.employee_no || teacher.unique_no || 'N/A'}
+                </div>
+                 <div>
+                     <span className="block text-gray-400">Phone</span>
+                     {teacher.phone}
+                </div>
+                 <div className="col-span-2">
+                     <span className="block text-gray-400">Email</span>
+                     {teacher.email}
+                </div>
+            </div>
+        </div>
+    );
+
     // --- Main Table ---
     return (
-        <div className="bg-white rounded-lg shadow-md overflow-hidden">
+        <div>
+            {/* Mobile View (Cards) */}
+            <div className="block md:hidden">
+                {teachers.map((teacher) => (
+                    <TeacherCard key={teacher.id} teacher={teacher} />
+                ))}
+            </div>
+
+            {/* Desktop View (Table) */}
+            <div className="hidden md:block bg-white rounded-lg shadow-md overflow-hidden">
             <div className="overflow-x-auto">
                 <table className="min-w-full divide-y divide-gray-200">
                     <thead className="bg-gray-50">
@@ -133,6 +212,7 @@ const TeacherTable = ({ teachers, onEdit, onDelete, onView, loading }) => {
                         })}
                     </tbody>
                 </table>
+            </div>
             </div>
         </div>
     );
