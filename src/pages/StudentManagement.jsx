@@ -142,21 +142,21 @@ const StudentManagement = () => {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex justify-between items-center">
-        <div>
-          <h2 className="text-2xl font-bold text-gray-800">Student Management</h2>
-          <p className="text-gray-600 mt-1">Manage all students in the system</p>
-        </div>
-        <Button
-          onClick={handleAddNew}
-          className="w-[10px]"
-          size="small"
-        >
-          <UserPlus size={15} className="mr-2 inline" />  
-           New Student
-        </Button>
-
-      </div>
+      {/* Header */}
+<div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+  <div>
+    <h2 className="text-xl md:text-2xl font-bold text-gray-800">Student Management</h2>
+    <p className="text-sm text-gray-600 mt-1">Manage all students in the system</p>
+  </div>
+  <Button
+    onClick={handleAddNew}
+    size="small"
+    className="w-full sm:w-auto" // Mobile: Full width, Desktop: Auto
+  >
+    <UserPlus size={15} className="mr-2 inline" />  
+    New Student
+  </Button>
+</div>
 
       {/* Alerts */}
       {error && <Alert type="error" message={error} onClose={() => setError('')} />}

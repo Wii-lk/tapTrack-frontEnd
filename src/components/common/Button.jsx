@@ -14,11 +14,11 @@ const Button = ({
   
   const baseClasses = "relative flex items-center justify-center rounded-xl font-semibold transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 active:scale-[0.98]";
 
-  const sizes = {
-    full: "w-full py-3 px-4 text-sm",
-    half: "w-1/2 py-2.5 px-4 text-sm",
-    small: "w-fit py-2 px-4 text-xs",
-  };
+const sizes = {
+  full: "w-full py-3 px-4 text-sm",
+  half: "w-1/2 py-2.5 px-4 text-sm",
+  small: "px-3 py-2 text-xs", // Removed w-fit to let className handle it
+};
 
   const variants = {
     primary: "bg-blue-600 text-white hover:bg-blue-700 shadow-lg shadow-blue-600/20 focus:ring-blue-500 disabled:bg-blue-300",

@@ -32,13 +32,11 @@ const Modal = ({ isOpen, onClose, title, children, size = 'md' }) => {
       ></div>
 
       {/* Modal */}
-      <div className="flex min-h-full items-center justify-center p-4">
-        <div
-          className={`relative bg-white rounded-lg shadow-xl w-full ${sizeClasses[size]} transform transition-all`}
-        >
+      <div className="flex min-h-full items-end sm:items-center justify-center p-2 sm:p-4">
+        <div className={`relative bg-white rounded-t-lg sm:rounded-lg shadow-xl w-full ${sizeClasses[size]} transform transition-all max-h-[95vh] flex flex-col`}>
           {/* Header */}
-          <div className="flex items-center justify-between p-6 border-b border-gray-200">
-            <h3 className="text-xl font-semibold text-gray-900">{title}</h3>
+          <div className="flex items-center justify-between p-4 sm:p-6 border-b">
+            <h3 className="text-lg sm:text-xl font-semibold">{title}</h3>
             <button
               onClick={onClose}
               className="text-gray-400 hover:text-gray-600 transition-colors"
@@ -48,7 +46,9 @@ const Modal = ({ isOpen, onClose, title, children, size = 'md' }) => {
           </div>
 
           {/* Content */}
-          <div className="p-6">{children}</div>
+          <div className="p-4 sm:p-6 overflow-y-auto">
+            {children}
+          </div>
         </div>
       </div>
     </div>
