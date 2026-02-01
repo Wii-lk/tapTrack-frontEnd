@@ -11,7 +11,7 @@ import Alert from '../common/Alert';
 const FeePaymentForm = () => {
   const { studentId: urlStudentId } = useParams();
   const navigate = useNavigate();
-
+  
   const [studentId, setStudentId] = useState(urlStudentId || '50');
   const [loading, setLoading] = useState(false);
   const [studentData, setStudentData] = useState(null);

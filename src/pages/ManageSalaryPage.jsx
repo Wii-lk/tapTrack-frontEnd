@@ -13,6 +13,8 @@ const ManageSalaryPage = () => {
   const { userId: urlUserId, id: urlId } = useParams();
   const navigate = useNavigate();
   const userId = parseInt(urlUserId || urlId);
+  const [showReceipt, setShowReceipt] = useState(false);
+const [currentSlipData, setCurrentSlipData] = useState(null);
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');

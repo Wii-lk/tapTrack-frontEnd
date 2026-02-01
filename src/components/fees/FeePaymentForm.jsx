@@ -1,30 +1,34 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { 
-  Search, DollarSign, ArrowLeft, Calendar, CreditCard, 
-  User, FileText, CheckCircle, AlertCircle, ChevronRight 
+import {
+  Search, DollarSign, ArrowLeft, Calendar, CreditCard,
+  User, FileText, CheckCircle, AlertCircle, ChevronRight
 } from 'lucide-react';
 import { feeService } from '../../services/feeService';
 import Button from '../common/Button';
 import Input from '../common/Input';
 import Select from '../common/Select';
+import FeeReceiptModal from './FeeReceiptModal';
 
 const FeePaymentForm = () => {
   const { studentId: urlStudentId } = useParams();
   const navigate = useNavigate();
 
-  // --- State Management ---
+  // --- State Management ---h
   const [studentId, setStudentId] = useState(urlStudentId || '');
   const [loading, setLoading] = useState(false);
   const [processing, setProcessing] = useState(false);
   const [studentData, setStudentData] = useState(null);
-  
+
+  const [showReceipt, setShowReceipt] = useState(false);
+  const [newPaymentId, setNewPaymentId] = useState(null);
+
   const [amount, setAmount] = useState('');
   const [paymentDate, setPaymentDate] = useState(new Date().toISOString().split('T')[0]);
   const [method, setMethod] = useState('cash');
   const [reference, setReference] = useState('');
   const [notes, setNotes] = useState('');
-  
+
   const [allocations, setAllocations] = useState([]);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -40,7 +44,7 @@ const FeePaymentForm = () => {
       setAllocations([]);
       return;
     }
-    
+
     const val = parseFloat(amount);
     if (!isNaN(val) && val > 0) {
       calculateAllocation(val);
@@ -58,7 +62,7 @@ const FeePaymentForm = () => {
     setStudentData(null);
     setAmount('');
     setAllocations([]);
-    
+
     try {
       const res = await feeService.getOutstandingFees(idToSearch);
       if (res.success && res.data.students.length > 0) {
@@ -76,7 +80,7 @@ const FeePaymentForm = () => {
   const calculateAllocation = (totalPay) => {
     let remaining = totalPay;
     const newAllocations = [];
-    
+
     // Sort fees: Pay oldest first (assuming ID correlates with time, otherwise sort by date)
     const sortedFees = [...studentData.fees].sort((a, b) => a.id - b.id);
 
@@ -86,7 +90,7 @@ const FeePaymentForm = () => {
       // SAFETY FIX: Ensure we parse API string values to floats
       const feeOutstanding = parseFloat(fee.outstanding);
       const canPay = Math.min(remaining, feeOutstanding);
-      
+
       if (canPay > 0) {
         newAllocations.push({
           fee_record_id: fee.id,
@@ -122,8 +126,12 @@ const FeePaymentForm = () => {
 
       const res = await feeService.processPayment(payload);
       if (res.success) {
-        setSuccess(`Payment Successful! Receipt: ${res.data.receipt_no}`);
-        setTimeout(() => navigate('/fees'), 2500);
+        setSuccess(`Payment Successful!`);
+        // 🟢 FIX: Set the ID from response and show modal
+        setNewPaymentId(res.data.payment_id); // Ensure your API returns the ID/PK here
+        setShowReceipt(true);
+
+        // Remove the automatic navigate('/fees') so the user can see/print the receipt
       }
     } catch (err) {
       setError(err.message);
@@ -137,13 +145,13 @@ const FeePaymentForm = () => {
   // --- Helper Calculations for UI ---
   const inputAmount = parseFloat(amount) || 0;
   const totalAllocated = allocations.reduce((sum, item) => sum + item.amount, 0);
-  
+
   // 🟢 ROBUST CALCULATION FIX:
   // We subtract allocated from input. If input is 6000 and allocated is 5000, excess is 1000.
-  const excessAmount = inputAmount - totalAllocated; 
-  
+  const excessAmount = inputAmount - totalAllocated;
+
   // Only show excess if it's greater than 1 rupee (filters out tiny float errors)
-  const hasExcess = excessAmount > 1.0; 
+  const hasExcess = excessAmount > 1.0;
 
   // --- Render Helpers ---
   const renderStudentCard = () => (
@@ -163,11 +171,11 @@ const FeePaymentForm = () => {
           </div>
         </div>
       </div>
-      
+
       <div className="p-6">
         <div className="mb-2 text-sm text-gray-500 uppercase tracking-wider font-semibold">Total Due</div>
         <div className="text-4xl font-extrabold text-orange-600">{formatCurrency(studentData.total_outstanding)}</div>
-        
+
         {studentData.advance_balance > 0 && (
           <div className="mt-4 p-3 bg-green-50 text-green-700 rounded-lg text-sm flex items-center">
             <CheckCircle size={16} className="mr-2" />
@@ -190,9 +198,18 @@ const FeePaymentForm = () => {
             ))}
           </div>
         ) : (
-           <div className="text-sm text-gray-500 italic">No pending invoices.</div>
+          <div className="text-sm text-gray-500 italic">No pending invoices.</div>
         )}
       </div>
+
+      <FeeReceiptModal 
+        isOpen={showReceipt} 
+        onClose={() => {
+          setShowReceipt(false);
+          navigate('/fees'); // Navigate away ONLY after they close the receipt
+        }} 
+        paymentId={newPaymentId} 
+      />
     </div>
   );
 
@@ -202,7 +219,7 @@ const FeePaymentForm = () => {
       <div className="bg-white border-b border-gray-200 sticky top-0 z-10 px-4 py-3 sm:px-6 lg:px-8">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <button 
+            <button
               onClick={() => navigate('/fees')}
               className="p-2 hover:bg-gray-100 rounded-full transition-colors text-gray-600"
             >
@@ -214,9 +231,9 @@ const FeePaymentForm = () => {
           <div className="hidden sm:flex items-center gap-2">
             <div className="relative">
               <Search className="absolute left-2.5 top-2.5 text-gray-400" size={16} />
-              <input 
-                type="text" 
-                placeholder="Student ID" 
+              <input
+                type="text"
+                placeholder="Student ID"
                 className="pl-9 pr-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none w-40"
                 value={studentId}
                 onChange={(e) => setStudentId(e.target.value)}
@@ -231,12 +248,12 @@ const FeePaymentForm = () => {
       </div>
 
       <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        
+
         {/* Mobile Search (Only visible on small screens) */}
         <div className="sm:hidden mb-6 flex gap-2">
-          <Input 
-            placeholder="Enter Student ID..." 
-            value={studentId} 
+          <Input
+            placeholder="Enter Student ID..."
+            value={studentId}
             onChange={(e) => setStudentId(e.target.value)}
             className="flex-1"
           />
@@ -250,7 +267,7 @@ const FeePaymentForm = () => {
             <p>{error}</p>
           </div>
         )}
-        
+
         {success && (
           <div className="mb-6 p-4 bg-green-50 border border-green-100 text-green-700 rounded-lg flex items-center gap-3 animate-in fade-in slide-in-from-top-2">
             <CheckCircle className="shrink-0" size={20} />
@@ -272,7 +289,7 @@ const FeePaymentForm = () => {
 
         {studentData && (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
-            
+
             {/* LEFT COLUMN: Context Info */}
             <div className="lg:col-span-1 space-y-6 animate-in slide-in-from-left-4 duration-500">
               {renderStudentCard()}
@@ -323,9 +340,9 @@ const FeePaymentForm = () => {
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                    <Select 
-                      label="Payment Method" 
-                      value={method} 
+                    <Select
+                      label="Payment Method"
+                      value={method}
                       onChange={(e) => setMethod(e.target.value)}
                     >
                       <option value="cash">Cash</option>
@@ -333,10 +350,10 @@ const FeePaymentForm = () => {
                       <option value="online">Online</option>
                       <option value="cheque">Cheque</option>
                     </Select>
-                    
-                    <Input 
-                      label="Reference / Cheque No" 
-                      placeholder="e.g. TRX-88592" 
+
+                    <Input
+                      label="Reference / Cheque No"
+                      placeholder="e.g. TRX-88592"
                       value={reference}
                       onChange={(e) => setReference(e.target.value)}
                     />
@@ -361,13 +378,13 @@ const FeePaymentForm = () => {
                         <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">Allocation Preview</span>
                         <span className="text-xs font-medium text-gray-400">Auto-calculated</span>
                       </div>
-                      
+
                       <div className="divide-y divide-gray-100">
                         {allocations.map((alloc) => (
                           <div key={alloc.fee_record_id} className="px-4 py-3 flex justify-between items-center">
                             <div className="flex items-center gap-3">
                               <div className={`p-1.5 rounded-full ${alloc.fullyPaid ? 'bg-green-100 text-green-600' : 'bg-yellow-100 text-yellow-600'}`}>
-                                {alloc.fullyPaid ? <CheckCircle size={14} /> : <div className="w-3.5 h-3.5 rounded-full border-2 border-current border-t-transparent animate-spin" />} 
+                                {alloc.fullyPaid ? <CheckCircle size={14} /> : <div className="w-3.5 h-3.5 rounded-full border-2 border-current border-t-transparent animate-spin" />}
                               </div>
                               <div>
                                 <p className="text-sm font-medium text-gray-900">{alloc.monthLabel}</p>
@@ -380,7 +397,7 @@ const FeePaymentForm = () => {
                             </div>
                           </div>
                         ))}
-                        
+
                         {/* 🟢 EXCESS / ADVANCE ROW */}
                         {hasExcess && (
                           <div className="px-4 py-3 bg-blue-50 flex justify-between items-center">
@@ -394,25 +411,25 @@ const FeePaymentForm = () => {
                           </div>
                         )}
                       </div>
-                      
+
                       <div className="bg-gray-100 px-4 py-3 flex justify-between items-center">
-                         <span className="font-semibold text-gray-700">Total Payment</span>
-                         <span className="font-bold text-lg text-gray-900">{formatCurrency(inputAmount)}</span>
+                        <span className="font-semibold text-gray-700">Total Payment</span>
+                        <span className="font-bold text-lg text-gray-900">{formatCurrency(inputAmount)}</span>
                       </div>
                     </div>
                   )}
 
                   <div className="pt-4 flex gap-4">
-                    <Button 
-                      variant="outline" 
-                      type="button" 
+                    <Button
+                      variant="outline"
+                      type="button"
                       className="flex-1 py-3"
                       onClick={() => navigate('/fees')}
                     >
                       Cancel
                     </Button>
-                    <Button 
-                      type="submit" 
+                    <Button
+                      type="submit"
                       className="flex-[2] py-3 text-base shadow-lg shadow-orange-200"
                       loading={processing}
                       disabled={!amount || parseFloat(amount) <= 0}
