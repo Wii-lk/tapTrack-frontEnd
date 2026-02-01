@@ -1,39 +1,40 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { UserPlus } from 'lucide-react';
+
 import Button from '../components/common/Button';
 import Card from '../components/common/Card';
 import Modal from '../components/common/Modal';
 import Pagination from '../components/common/Pagination';
 import Alert from '../components/common/Alert';
+
 import TeacherFilters from '../components/teachers/TeacherFilters';
 import TeacherTable from '../components/teachers/TeacherTable';
 import TeacherForm from '../components/teachers/TeacherForm';
 import DeleteConfirmModal from '../components/teachers/DeleteConfirmModal';
+
 import teacherService from '../services/teacherService';
 
 const TeacherManagement = () => {
   const navigate = useNavigate();
 
+  // Data state
   const [teachers, setTeachers] = useState([]);
+  const [selectedTeacher, setSelectedTeacher] = useState(null);
+
+  // UI state
   const [loading, setLoading] = useState(false);
   const [formLoading, setFormLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
-  // Modal states
+  // Modals
   const [isFormModalOpen, setIsFormModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [selectedTeacher, setSelectedTeacher] = useState(null);
 
-  // Pagination
+  // Pagination (single source of truth)
   const [currentPage, setCurrentPage] = useState(1);
-  const [pagination, setPagination] = useState({
-    currentPage: 1,
-    perPage: 10,
-    total: 0,
-    totalPages: 0,
-  });
+  const [totalPages, setTotalPages] = useState(1);
 
   // Filters
   const [filters, setFilters] = useState({
@@ -46,14 +47,22 @@ const TeacherManagement = () => {
     fetchTeachers();
   }, [currentPage, filters]);
 
+  // -----------------------------
+  // API
+  // -----------------------------
   const fetchTeachers = async () => {
     try {
       setLoading(true);
       setError('');
-      const response = await teacherService.getTeachers(currentPage, 10, filters);
 
-      setTeachers(response.data.teachers || []); 
-      setPagination(response.data.pagination || {});
+      const response = await teacherService.getTeachers(
+        currentPage,
+        10,
+        filters
+      );
+
+      setTeachers(response.data.teachers || []);
+      setTotalPages(response.data.pagination?.last_page || 1);
     } catch (err) {
       setError(err.message || 'Failed to fetch teachers');
     } finally {
@@ -61,21 +70,20 @@ const TeacherManagement = () => {
     }
   };
 
+  // -----------------------------
+  // Handlers
+  // -----------------------------
   const handleAddNew = () => {
     setSelectedTeacher(null);
     setIsFormModalOpen(true);
   };
 
-  // UPDATED: Fetch full teacher details when editing
   const handleEdit = async (teacher) => {
     try {
       setFormLoading(true);
       setError('');
-      
-      // Fetch full teacher details by ID
+
       const response = await teacherService.getTeacherById(teacher.id);
-      
-      // Set the full teacher data
       setSelectedTeacher(response.data);
       setIsFormModalOpen(true);
     } catch (err) {
@@ -90,6 +98,22 @@ const TeacherManagement = () => {
     setIsDeleteModalOpen(true);
   };
 
+  const handleDeleteConfirm = async () => {
+    try {
+      setFormLoading(true);
+      setError('');
+
+      await teacherService.deleteTeacher(selectedTeacher.id);
+      setSuccess('Teacher deleted successfully');
+      setIsDeleteModalOpen(false);
+      fetchTeachers();
+    } catch (err) {
+      setError(err.message || 'Failed to delete teacher');
+    } finally {
+      setFormLoading(false);
+    }
+  };
+
   const handleView = (teacher) => {
     navigate(`/teachers/${teacher.id}`);
   };
@@ -101,31 +125,16 @@ const TeacherManagement = () => {
 
       if (selectedTeacher) {
         await teacherService.updateTeacher(selectedTeacher.id, formData);
-        setSuccess('Teacher updated successfully!');
+        setSuccess('Teacher updated successfully');
       } else {
         await teacherService.createTeacher(formData);
-        setSuccess('Teacher added successfully!');
+        setSuccess('Teacher added successfully');
       }
 
       setIsFormModalOpen(false);
       fetchTeachers();
     } catch (err) {
       setError(err.message || 'Failed to save teacher');
-    } finally {
-      setFormLoading(false);
-    }
-  };
-
-  const handleDeleteConfirm = async () => {
-    try {
-      setFormLoading(true);
-      setError('');
-      await teacherService.deleteTeacher(selectedTeacher.id);
-      setSuccess('Teacher deleted successfully!');
-      setIsDeleteModalOpen(false);
-      fetchTeachers();
-    } catch (err) {
-      setError(err.message || 'Failed to delete teacher');
     } finally {
       setFormLoading(false);
     }
@@ -146,30 +155,48 @@ const TeacherManagement = () => {
   };
 
   const handlePageChange = (page) => {
-    setCurrentPage(page);
+    if (page >= 1 && page <= totalPages) {
+      setCurrentPage(page);
+    }
   };
 
+  // -----------------------------
+  // Render
+  // -----------------------------
   return (
-    <div className="space-y-4 md:space-y-6 p-4 md:p-0">
+    <div className="space-y-6 p-4 md:p-0">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:justify-between items-start sm:items-center gap-4 pt-4 sm:pt-0">
-        <div className="text-left">
-          <h2 className="text-xl sm:text-2xl font-bold text-gray-800">Teacher Management</h2>
-          <p className="text-sm sm:text-base text-gray-600 mt-1">Manage all teachers in the system</p>
+      <div className="flex flex-col sm:flex-row sm:justify-between gap-4">
+        <div>
+          <h2 className="text-2xl font-bold text-gray-800">
+            Teacher Management
+          </h2>
+          <p className="text-gray-600">
+            Manage all teachers in the system
+          </p>
         </div>
-        <Button
-          onClick={handleAddNew}
-          className="w-full sm:w-auto"
-        >
-          <UserPlus size={18} className="mr-2 inline" />
+
+        <Button onClick={handleAddNew} size="small">
+          <UserPlus size={18} className="mr-2"/>
           Add New Teacher
         </Button>
       </div>
 
       {/* Alerts */}
-      {error && <Alert type="error" message={error} onClose={() => setError('')} />}
+      {error && (
+        <Alert
+          type="error"
+          message={error}
+          onClose={() => setError('')}
+        />
+      )}
+
       {success && (
-        <Alert type="success" message={success} onClose={() => setSuccess('')} />
+        <Alert
+          type="success"
+          message={success}
+          onClose={() => setSuccess('')}
+        />
       )}
 
       {/* Filters */}
@@ -182,17 +209,17 @@ const TeacherManagement = () => {
       {/* Table */}
       <TeacherTable
         teachers={teachers}
+        loading={loading}
         onEdit={handleEdit}
         onDelete={handleDelete}
         onView={handleView}
-        loading={loading}
       />
 
       {/* Pagination */}
       {!loading && teachers.length > 0 && (
         <Pagination
-          currentPage={pagination.currentPage}
-          totalPages={pagination.totalPages}
+          currentPage={currentPage}
+          totalPages={totalPages}
           onPageChange={handlePageChange}
         />
       )}
@@ -204,27 +231,25 @@ const TeacherManagement = () => {
         title={selectedTeacher ? 'Edit Teacher' : 'Add New Teacher'}
         size="lg"
       >
-        {formLoading && !selectedTeacher ? (
-          <div className="flex justify-center items-center py-8">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-          </div>
-        ) : (
-          <TeacherForm
-            teacher={selectedTeacher}
-            onSubmit={handleFormSubmit}
-            onCancel={() => setIsFormModalOpen(false)}
-            loading={formLoading}
-          />
-        )}
+        <TeacherForm
+          teacher={selectedTeacher}
+          loading={formLoading}
+          onSubmit={handleFormSubmit}
+          onCancel={() => setIsFormModalOpen(false)}
+        />
       </Modal>
 
-      {/* Delete Confirmation Modal */}
+      {/* Delete Modal */}
       <DeleteConfirmModal
         isOpen={isDeleteModalOpen}
         onClose={() => setIsDeleteModalOpen(false)}
         onConfirm={handleDeleteConfirm}
-        teacherName={selectedTeacher ? `${selectedTeacher.first_name} ${selectedTeacher.last_name}` : ''}
         loading={formLoading}
+        teacherName={
+          selectedTeacher?.user
+            ? `${selectedTeacher.user.first_name} ${selectedTeacher.user.last_name}`
+            : ''
+        }
       />
     </div>
   );

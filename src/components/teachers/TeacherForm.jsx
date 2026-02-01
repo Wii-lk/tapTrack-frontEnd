@@ -24,8 +24,8 @@ const getInitialState = () => ({
   date_of_birth: '',
   address: '',
   photo: null,
-  unique_no: '',      // Existing RFID/Unique ID
-  employee_no: '',    // <--- NEW FIELD
+  // unique_no: '',      // Existing RFID/Unique ID
+  // employee_no: '',    // <--- NEW FIELD
   email: '',
   phone_no: '',
   position: '',
@@ -52,8 +52,8 @@ const TeacherForm = ({ teacher, onSubmit, onCancel, loading }) => {
         date_of_birth: teacher.date_of_birth || '',
         address: teacher.address || '',
         photo: null, 
-        unique_no: teacher.unique_no || '',
-        employee_no: teacher.employee_no || '', // <--- Load from prop
+        // unique_no: teacher.unique_no || '',
+        // employee_no: teacher.employee_no || '', // <--- Load from prop
         email: teacher.email || '',
         phone_no: teacher.phone || '',
         position: teacher.designation || '',
@@ -229,7 +229,7 @@ const TeacherForm = ({ teacher, onSubmit, onCancel, loading }) => {
         </div>
 
         {/* 🟢 NEW FIELD: Employee ID */}
-        <Input
+        {/* <Input
           label="Employee ID *"
           name="employee_no"
           value={formData.employee_no}
@@ -237,10 +237,10 @@ const TeacherForm = ({ teacher, onSubmit, onCancel, loading }) => {
           required
           placeholder="e.g. EMP-001"
           icon={Hash}
-        />
+        /> */}
 
         {/* Conditionally Show Unique ID (RFID) only in edit mode */}
-        {!!teacher && (
+        {/* {!!teacher && (
           <Input
             label="Unique ID (System/RFID)"
             name="unique_no"
@@ -249,7 +249,7 @@ const TeacherForm = ({ teacher, onSubmit, onCancel, loading }) => {
             disabled={true} 
             icon={Hash}
           />
-        )}
+        )} */}
 
         <Input
           label="Email Address *"

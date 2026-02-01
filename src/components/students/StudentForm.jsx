@@ -25,7 +25,7 @@ const getInitialState = () => ({
   date_of_birth: '',
   address: '',
   photo: null,
-  index_no: '',
+  // index_no: '',
   parent_name: '',
   parent_nic: '',
   parent_phone: '',
@@ -73,7 +73,7 @@ const StudentForm = ({ student, onSubmit, onCancel, loading }) => {
         date_of_birth: student.date_of_birth || '',
         address: student.address || '',
         photo: null,
-        index_no: student.index_no || '', 
+        // index_no: student.index_no || '', 
         parent_name: student.parent_name || '', 
         parent_nic: student.parent_nic || '',
         parent_phone: student.parent_phone || '',
@@ -119,7 +119,7 @@ const StudentForm = ({ student, onSubmit, onCancel, loading }) => {
     const newErrors = {};
     if (!formData.first_name) newErrors.first_name = 'First name is required';
     if (!formData.last_name) newErrors.last_name = 'Last name is required';
-    if (!formData.index_no) newErrors.index_no = 'Student ID is required';
+    // if (!formData.index_no) newErrors.index_no = 'Student ID is required';
     if (!formData.username) newErrors.username = 'Username is required';
     if (!student && !formData.password) newErrors.password = 'Password is required for new students';
     if (!formData.parent_name) newErrors.parent_name = 'Parent name is required';
@@ -242,14 +242,14 @@ const StudentForm = ({ student, onSubmit, onCancel, loading }) => {
           error={errors.last_name}
           icon={User}
         />
-        <Input
+        {/* <Input
           label="Student ID (Unique No) *"
           name="index_no"
           value={formData.index_no}
           onChange={handleChange}
           error={errors.index_no}
-          icon={Hash}
-        />
+          icon={Hash} */}
+        {/* /> */}
         <Input
           label="Date of Birth *"
           name="date_of_birth"
@@ -352,9 +352,9 @@ const StudentForm = ({ student, onSubmit, onCancel, loading }) => {
 
         {/* --- Academic Information --- */}
         <div className="md:col-row-2">
-          <h3 className="text-lg font-medium text-gray-900 mb-3">
+          {/* <h3 className="text-lg font-medium text-gray-900 mb-3">
             Academic Information
-          </h3>
+          </h3> */}
         </div>
         
         <Select
