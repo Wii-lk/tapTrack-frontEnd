@@ -1,0 +1,126 @@
+/* Container for the graphic */
+.rfid-stage {
+  position: relative;
+  width: 220px;
+  height: 180px;
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  overflow: visible;
+}
+
+/* --- The Reader Machine --- */
+.reader-machine {
+  position: absolute;
+  bottom: 0;
+  width: 140px;
+  height: 50px;
+  background: linear-gradient(to bottom, #334155, #1e293b);
+  border-radius: 12px 12px 4px 4px;
+  box-shadow: 
+    0 10px 15px -3px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  z-index: 10;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transform: perspective(500px) rotateX(20deg); /* 3D tilt effect */
+}
+
+/* The scanning area on the machine */
+.sensor-zone {
+  position: relative;
+  width: 50px;
+  height: 30px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 6px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+}
+
+/* The wifi/nfc lines */
+.wifi-line {
+  border-top: 2px solid #3b82f6; /* Blue signal */
+  border-radius: 50%;
+  opacity: 0.8;
+}
+.line-1 { width: 20px; height: 10px; margin-top: 2px; }
+.line-2 { width: 14px; height: 7px; margin-top: -5px; }
+.line-3 { width: 8px; height: 4px; margin-top: -3px; }
+
+/* Pulsing animation behind the icon */
+.pulse-ring {
+  position: absolute;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #3b82f6;
+  opacity: 0;
+  animation: radarPulse 2s infinite;
+  z-index: -1;
+}
+
+/* Status light on the side */
+.reader-status-light {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: #22c55e; /* Green ready light */
+  box-shadow: 0 0 5px #22c55e;
+}
+
+/* --- The Hand & Card Container --- */
+.hand-wrapper {
+  position: absolute;
+  bottom: 20px; /* Starts above machine */
+  right: -20px;
+  width: 180px;
+  height: 180px;
+  z-index: 20;
+  /* The Animation Logic */
+  animation: tapMotion 2.5s ease-in-out infinite;
+  transform-origin: bottom right; /* Rotate from the wrist/arm */
+}
+
+.hand-svg {
+  width: 100%;
+  height: 100%;
+  drop-shadow: 5px 10px 10px rgba(0,0,0,0.2); /* Shadow for depth */
+}
+
+/* --- Animations --- */
+
+/* 1. The Hand Tapping Motion */
+@keyframes tapMotion {
+  0% {
+    transform: translate(20px, -30px) rotate(15deg); /* Start: away and tilted up */
+  }
+  35% {
+    transform: translate(0px, 0px) rotate(0deg); /* Tap: centered and flat */
+  }
+  45% {
+    transform: translate(0px, 0px) rotate(0deg); /* Hold: stay briefly */
+  }
+  100% {
+    transform: translate(20px, -30px) rotate(15deg); /* End: reset */
+  }
+}
+
+/* 2. The Sensor Pulse */
+@keyframes radarPulse {
+  0% {
+    transform: scale(0.5);
+    opacity: 0.6;
+  }
+  100% {
+    transform: scale(1.5);
+    opacity: 0;
+  }
+}
