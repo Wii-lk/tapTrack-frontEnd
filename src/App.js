@@ -1,6 +1,6 @@
 import React from "react";
 import {
-  BrowserRouter as Router,
+  BrowserRouter as Router, // We use this as Router
   Routes,
   Route,
   Navigate,
@@ -14,29 +14,28 @@ import StudentDetails from "./pages/StudentDetails";
 import TeacherManagement from "./pages/TeacherManagement";
 import TeacherDetails from "./pages/TeacherDetails";
 import ClassManagement from "./pages/ClassManagement";
-import FeesManagement from "./pages/FeesManagement";
-import PaymentsManagement from "./pages/PaymentsManagement";
+// import FeesManagement from "./pages/FeesManagement";
+// import PaymentsManagement from "./pages/PaymentsManagement";
 import AttendanceManagement from "./pages/AttendanceManagement";
 import LeaveManagementPage from "./pages/LeaveManagementPage";
 import SalaryHistoryPage from "./pages/SalaryHistoryPage";
 import AttendanceHistoryPage from "./pages/AttendanceHistoryPage";
-import Reports from "./pages/Reports";
+// import Reports from "./pages/Reports";
 import SystemSettings from "./pages/SystemSetting";
-// import FeePaymentForm from "./components/payments/FeePaymentForm";
 
 import ManageSalaryStaffPage from "./pages/ManageSalaryStaffPage";
 import ManageSalaryPage from "./pages/ManageSalaryPage";
 
 import ManageFeesPage from "./pages/ManageFeesPage";
 import FeePaymentForm from "./components/fees/FeePaymentForm";
-import GlobalLoader from "./components/common/GlobalLoader";
+// import GlobalLoader from "./components/common/GlobalLoader";
 
 function App() {
   const { token } = useAuth();
 
   return (
-    <Router>
-      {/* <GlobalLoader /> <--- ADD THIS HERE */}
+    /* 🟢 ADDED basename HERE to match your server URL subfolder */
+    <Router basename="/PhoenixSystem/tapTrack-FrontEnd">
       {!token ? (
         <LoginPage />
       ) : (
@@ -70,7 +69,6 @@ function App() {
               element={<ManageSalaryPage />}
             />
             <Route path="/salary-history" element={<SalaryHistoryPage />} />
-            {/* <Route path="/reports" element={<Reports />} /> */}
             <Route path="/settings" element={<SystemSettings />} />
           </Routes>
         </DashboardLayout>
