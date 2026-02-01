@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { 
-  Calculator, CheckCircle, ArrowLeft, AlertCircle, 
-  Save, Loader2, Edit3, Calendar 
+import {
+  Calculator, CheckCircle, ArrowLeft, AlertCircle,
+  Save, Loader2, Edit3, Calendar
 } from 'lucide-react';
 import { salaryService } from '../services/salaryService';
 import Button from '../components/common/Button';
@@ -14,12 +14,12 @@ const ManageSalaryPage = () => {
   const navigate = useNavigate();
   const userId = parseInt(urlUserId || urlId);
   const [showReceipt, setShowReceipt] = useState(false);
-const [currentSlipData, setCurrentSlipData] = useState(null);
+  const [currentSlipData, setCurrentSlipData] = useState(null);
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-  const [step, setStep] = useState(1); 
+  const [step, setStep] = useState(1);
 
   const [month, setMonth] = useState(new Date().getMonth() + 1);
   const [year, setYear] = useState(new Date().getFullYear());
@@ -86,11 +86,11 @@ const [currentSlipData, setCurrentSlipData] = useState(null);
       const res = await salaryService.adjustSalary({
         user_id: userId, month, year, deductions: deductionsArray, notes: "Adjusted by Admin"
       });
-      
+
       if (res.success) {
         const currentBasic = parseFloat(salaryData.basic_salary) || 0;
         const newTotalDeductions = Object.values(editedDeductions).reduce((acc, val) => acc + (parseFloat(val) || 0), 0);
-        
+
         setSalaryData(prev => ({
           ...prev,
           deductions: editedDeductions,
@@ -113,17 +113,17 @@ const [currentSlipData, setCurrentSlipData] = useState(null);
     try {
       let deductionsToSubmit = [];
       if (!Array.isArray(salaryData.deductions) && Object.keys(editedDeductions).length > 0) {
-         deductionsToSubmit = formatDeductionsForBackend(editedDeductions);
+        deductionsToSubmit = formatDeductionsForBackend(editedDeductions);
       } else if (!Array.isArray(salaryData.deductions)) {
-         deductionsToSubmit = Object.entries(salaryData.deductions || {}).map(([key, val]) => ({
-            name: key, amount: typeof val === 'object' ? (val.amount || 0) : (val || 0)
-         }));
+        deductionsToSubmit = Object.entries(salaryData.deductions || {}).map(([key, val]) => ({
+          name: key, amount: typeof val === 'object' ? (val.amount || 0) : (val || 0)
+        }));
       } else {
-         deductionsToSubmit = salaryData.deductions;
+        deductionsToSubmit = salaryData.deductions;
       }
 
       const totalDeductions = deductionsToSubmit.reduce((acc, item) => acc + (parseFloat(item.amount) || 0), 0);
-      
+
       const payload = {
         user_id: userId, month, year,
         basic_salary: salaryData.basic_salary,
@@ -186,7 +186,7 @@ const [currentSlipData, setCurrentSlipData] = useState(null);
                 <div>
                   <label className="block text-xs font-medium text-gray-500 mb-1">Month</label>
                   <select value={month} onChange={(e) => setMonth(e.target.value)} disabled={step > 1} className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-blue-500">
-                    {Array.from({ length: 12 }, (_, i) => <option key={i+1} value={i+1}>{new Date(0, i).toLocaleString('default', { month: 'long' })}</option>)}
+                    {Array.from({ length: 12 }, (_, i) => <option key={i + 1} value={i + 1}>{new Date(0, i).toLocaleString('default', { month: 'long' })}</option>)}
                   </select>
                 </div>
                 <div>
@@ -266,7 +266,19 @@ const [currentSlipData, setCurrentSlipData] = useState(null);
           )}
         </div>
       </div>
-      <MarkPaidModal isOpen={isPayModalOpen} onClose={() => setIsPayModalOpen(false)} onConfirm={handleMarkPaid} loading={payLoading} />
+      <MarkPaidModal
+        isOpen={isPayModalOpen}
+        onClose={() => setIsPayModalOpen(false)}
+        onConfirm={handleMarkPaid}
+        loading={payLoading}
+        // 🟢 Pass the staff details here to fix N/A
+        staff={{
+          name: salaryData?.user_name,
+          employee_no: userId,
+          basic_salary: salaryData?.net_salary, // Use net_salary as the amount to be paid
+          role: "Staff Member"
+        }}
+      />
     </div>
   );
 };
@@ -281,7 +293,7 @@ const renderDeductionsList = (isAdjusting, editedDeductions, salaryData, setEdit
       {isAdjusting ? (
         <div className="flex items-center gap-2">
           <span className="text-gray-400 text-xs">LKR</span>
-          <input type="number" value={editedDeductions[key] || 0} onChange={(e) => setEditedDeductions({...editedDeductions, [key]: parseFloat(e.target.value) || 0})} className="w-24 px-2 py-1 text-right text-sm border border-amber-300 rounded focus:ring-2 focus:ring-amber-500 outline-none" />
+          <input type="number" value={editedDeductions[key] || 0} onChange={(e) => setEditedDeductions({ ...editedDeductions, [key]: parseFloat(e.target.value) || 0 })} className="w-24 px-2 py-1 text-right text-sm border border-amber-300 rounded focus:ring-2 focus:ring-amber-500 outline-none" />
         </div>
       ) : <span className="text-red-500 font-medium">- {formatMoney(amount)}</span>}
     </div>
