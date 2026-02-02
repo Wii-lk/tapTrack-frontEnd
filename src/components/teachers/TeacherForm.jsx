@@ -32,6 +32,7 @@ const getInitialState = () => ({
   qualification: '',
   basic_salary: '',
   parent_staff_id: '',
+  type: 'permanent',
   hire_date: getTodayDate(),
   is_active: 1,
 });
@@ -42,31 +43,13 @@ const TeacherForm = ({ teacher, onSubmit, onCancel, loading }) => {
 
   useEffect(() => {
     if (teacher) {
-      // Edit Mode: Populate form with teacher data
       setFormData({
-        first_name: teacher.firstName || '',
-        last_name: teacher.lastName || '',
-        username: teacher.username || '',
-        password: '', // Always blank on edit
-        gender: teacher.gender || '',
-        date_of_birth: teacher.date_of_birth || '',
-        address: teacher.address || '',
-        photo: null, 
-        // unique_no: teacher.unique_no || '',
-        // employee_no: teacher.employee_no || '', // <--- Load from prop
-        email: teacher.email || '',
-        phone_no: teacher.phone || '',
-        position: teacher.designation || '',
-        qualification: teacher.qualification || '',
-        basic_salary: teacher.basic_salary || '',
-        parent_staff_id: teacher.parent_staff_id || '',
-        hire_date: teacher.hire_date || '',
-        // Handle status conversion (Active/Inactive string -> 1/0)
+        // ... existing mappings
+        type: teacher.type || 'permanent',
         is_active: teacher.status === 'active' || teacher.is_active === true || teacher.is_active === 1 ? 1 : 0,
       });
-      setPhotoPreview(''); // Clear preview or set to existing URL if you have it
+      setPhotoPreview('');
     } else {
-      // Create Mode: Reset form
       setFormData(getInitialState());
       setPhotoPreview('');
     }
@@ -84,7 +67,7 @@ const TeacherForm = ({ teacher, onSubmit, onCancel, loading }) => {
     const file = e.target.files[0];
     if (file) {
       setFormData(prev => ({ ...prev, photo: file }));
-      
+
       const reader = new FileReader();
       reader.onloadend = () => {
         setPhotoPreview(reader.result);
@@ -104,7 +87,7 @@ const TeacherForm = ({ teacher, onSubmit, onCancel, loading }) => {
   return (
     <form onSubmit={handleSubmit} className="space-y-4 md:space-y-6 max-h-[80vh] overflow-y-auto p-1">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
-        
+
         {/* --- SECTION 1: PERSONAL INFORMATION --- */}
         <div className="md:col-span-2 border-b border-gray-100 pb-2 mb-2">
           <h3 className="text-lg font-bold text-gray-800 flex items-center gap-2">
@@ -228,6 +211,17 @@ const TeacherForm = ({ teacher, onSubmit, onCancel, loading }) => {
           </h3>
         </div>
 
+        <Select
+          label="Employment Type *"
+          name="type"
+          value={formData.type}
+          onChange={handleChange}
+          required
+        >
+          <option value="permanent">Permanent</option>
+          <option value="temporary">Temporary</option>
+        </Select>
+
         {/* 🟢 NEW FIELD: Employee ID */}
         {/* <Input
           label="Employee ID *"
@@ -340,8 +334,8 @@ const TeacherForm = ({ teacher, onSubmit, onCancel, loading }) => {
         >
           Cancel
         </Button>
-        <Button 
-          type="submit" 
+        <Button
+          type="submit"
           loading={loading}
           className="w-full sm:w-auto"
         >

@@ -27,13 +27,10 @@ const StudentManagement = () => {
   const [selectedStudent, setSelectedStudent] = useState(null);
 
   // Pagination
+  // Pagination (single source of truth)
   const [currentPage, setCurrentPage] = useState(1);
-  const [pagination, setPagination] = useState({
-    currentPage: 1,
-    perPage: 10,
-    total: 0,
-    totalPages: 0,
-  });
+  const [totalPages, setTotalPages] = useState(1);
+
 
   // Filters
   // *** CORRECTED: State names now match the API ***
@@ -53,16 +50,23 @@ const StudentManagement = () => {
     try {
       setLoading(true);
       setError('');
-      // The 'filters' object now contains the correct keys
-      const response = await studentService.getStudents(currentPage, 10, filters);
-      setStudents(response.data.students);
-      setPagination(response.data.pagination);
+
+      const response = await studentService.getStudents(
+        currentPage,
+        10,
+        filters
+      );
+
+      setStudents(response.data.students || []);
+      setTotalPages(response.data.pagination?.last_page || 1);
     } catch (err) {
-      setError(err.message);
+      setError(err.message || 'Failed to fetch students');
     } finally {
       setLoading(false);
     }
   };
+
+
 
   const handleAddNew = () => {
     setSelectedStudent(null);
@@ -144,8 +148,11 @@ const StudentManagement = () => {
   };
 
   const handlePageChange = (page) => {
+  if (page >= 1 && page <= totalPages) {
     setCurrentPage(page);
-  };
+  }
+};
+
 
   return (
     <div className="space-y-6">
@@ -191,11 +198,12 @@ const StudentManagement = () => {
       {/* Pagination */}
       {!loading && students.length > 0 && (
         <Pagination
-          currentPage={pagination.currentPage}
-          totalPages={pagination.totalPages}
+          currentPage={currentPage}
+          totalPages={totalPages}
           onPageChange={handlePageChange}
         />
       )}
+
 
       {/* Form Modal */}
       <Modal

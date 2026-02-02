@@ -92,10 +92,26 @@ const TeacherManagement = () => {
       setFormLoading(false);
     }
   };
+  
 
   const handleDelete = (teacher) => {
     setSelectedTeacher(teacher);
     setIsDeleteModalOpen(true);
+  };
+
+  const handleWriteToCard = async (teacher) => {
+    try {
+      setLoading(true); // Or use a specific writeLoading state if you prefer
+      setError('');
+      
+      const response = await teacherService.switchToWriteMode(teacher.id);
+      
+      setSuccess(response.message || `Write mode initiated for ${teacher.fullName}`);
+    } catch (err) {
+      setError(err.message || 'Failed to initiate write mode');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleDeleteConfirm = async () => {
@@ -160,6 +176,8 @@ const TeacherManagement = () => {
     }
   };
 
+
+
   // -----------------------------
   // Render
   // -----------------------------
@@ -213,6 +231,7 @@ const TeacherManagement = () => {
         onEdit={handleEdit}
         onDelete={handleDelete}
         onView={handleView}
+        writeMod ={handleWriteToCard} 
       />
 
       {/* Pagination */}

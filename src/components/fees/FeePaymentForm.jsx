@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
-  Search, DollarSign, ArrowLeft, Calendar, CreditCard,
+  Search, ArrowLeft, Calendar, CreditCard,
   User, FileText, CheckCircle, AlertCircle, ChevronRight
 } from 'lucide-react';
 import { feeService } from '../../services/feeService';
+// 1. IMPORT STUDENT SERVICE (Required for the fallback)
+import studentService from '../../services/studentService'; 
 import Button from '../common/Button';
 import Input from '../common/Input';
 import Select from '../common/Select';
@@ -14,7 +16,7 @@ const FeePaymentForm = () => {
   const { studentId: urlStudentId } = useParams();
   const navigate = useNavigate();
 
-  // --- State Management ---h
+  // --- State Management ---
   const [studentId, setStudentId] = useState(urlStudentId || '');
   const [loading, setLoading] = useState(false);
   const [processing, setProcessing] = useState(false);
@@ -38,7 +40,6 @@ const FeePaymentForm = () => {
     if (urlStudentId) handleSearch(urlStudentId);
   }, [urlStudentId]);
 
-  // Recalculate allocation whenever Amount or Student Data changes
   useEffect(() => {
     if (!studentData) {
       setAllocations([]);
@@ -54,7 +55,7 @@ const FeePaymentForm = () => {
   }, [amount, studentData]);
 
   // --- Logic ---
-  const handleSearch = async (idToSearch = studentId) => {
+ const handleSearch = async (idToSearch = studentId) => {
     if (!idToSearch) return;
     setLoading(true);
     setError('');
@@ -64,30 +65,60 @@ const FeePaymentForm = () => {
     setAllocations([]);
 
     try {
+      // 1. Try to get Outstanding Fees (Rich data with fee breakdown)
       const res = await feeService.getOutstandingFees(idToSearch);
+      
       if (res.success && res.data.students.length > 0) {
         setStudentData(res.data.students[0]);
       } else {
-        setError('Student not found.');
+        // --- START OF MODIFIED SECTION ---
+        
+        // 2. FALLBACK: Student has NO dues. Fetch basic details for Advance Payment.
+        try {
+            // Use direct ID lookup instead of search
+            const studentRes = await studentService.getStudentById(idToSearch);
+            
+            // Check if data exists (getStudentById returns data object directly, not an array)
+            if (studentRes.success && studentRes.data) {
+                const rawStudent = studentRes.data;
+                
+                setStudentData({
+                    student_id: rawStudent.id, 
+                    student_name: rawStudent.fullName, // Assumes normalizeStudent provides fullName
+                    grade: rawStudent.class || 'N/A',   // Adjust key based on your normalization
+                    admission_no: rawStudent.admissionNo,
+                    total_outstanding: 0, 
+                    advance_balance: 0, 
+                    fees: [] 
+                });
+            } else {
+                setError('Student not found.');
+            }
+        } catch (innerErr) {
+            // getStudentById throws an error if 404/not found
+            setError('Student not found.');
+        }
+
+        // --- END OF MODIFIED SECTION ---
       }
     } catch (err) {
-      setError(err.message);
+      setError(err.message || 'Error fetching student data');
     } finally {
       setLoading(false);
     }
   };
-
   const calculateAllocation = (totalPay) => {
+    if(!studentData.fees) return; // Guard clause
+
     let remaining = totalPay;
     const newAllocations = [];
 
-    // Sort fees: Pay oldest first (assuming ID correlates with time, otherwise sort by date)
+    // Sort fees: Pay oldest first
     const sortedFees = [...studentData.fees].sort((a, b) => a.id - b.id);
 
     for (const fee of sortedFees) {
-      if (remaining <= 0.01) break; // Stop if remaining is negligible
+      if (remaining <= 0.01) break; 
 
-      // SAFETY FIX: Ensure we parse API string values to floats
       const feeOutstanding = parseFloat(fee.outstanding);
       const canPay = Math.min(remaining, feeOutstanding);
 
@@ -97,7 +128,6 @@ const FeePaymentForm = () => {
           amount: canPay,
           monthLabel: `${new Date(fee.year, fee.month - 1).toLocaleString('default', { month: 'short' })} ${fee.year}`,
           originalAmount: feeOutstanding,
-          // Check if fully paid (using small epsilon for float safety)
           fullyPaid: canPay >= (feeOutstanding - 0.01)
         });
         remaining -= canPay;
@@ -115,7 +145,7 @@ const FeePaymentForm = () => {
 
     try {
       const payload = {
-        student_id: studentData.student_id,
+        student_id: studentData.student_id, // Ensure this matches the ID from fallback
         amount: parseFloat(amount),
         payment_date: paymentDate,
         payment_method: method,
@@ -127,11 +157,8 @@ const FeePaymentForm = () => {
       const res = await feeService.processPayment(payload);
       if (res.success) {
         setSuccess(`Payment Successful!`);
-        // 🟢 FIX: Set the ID from response and show modal
-        setNewPaymentId(res.data.payment_id); // Ensure your API returns the ID/PK here
+        setNewPaymentId(res.data.payment_id);
         setShowReceipt(true);
-
-        // Remove the automatic navigate('/fees') so the user can see/print the receipt
       }
     } catch (err) {
       setError(err.message);
@@ -142,15 +169,9 @@ const FeePaymentForm = () => {
 
   const formatCurrency = (val) => new Intl.NumberFormat('en-LK', { style: 'currency', currency: 'LKR' }).format(val);
 
-  // --- Helper Calculations for UI ---
   const inputAmount = parseFloat(amount) || 0;
   const totalAllocated = allocations.reduce((sum, item) => sum + item.amount, 0);
-
-  // 🟢 ROBUST CALCULATION FIX:
-  // We subtract allocated from input. If input is 6000 and allocated is 5000, excess is 1000.
   const excessAmount = inputAmount - totalAllocated;
-
-  // Only show excess if it's greater than 1 rupee (filters out tiny float errors)
   const hasExcess = excessAmount > 1.0;
 
   // --- Render Helpers ---
@@ -162,19 +183,27 @@ const FeePaymentForm = () => {
             <h3 className="text-lg font-bold text-gray-800">{studentData.student_name}</h3>
             <div className="flex items-center gap-2 text-gray-500 text-sm mt-1">
               <User size={14} /> <span>ID: {studentData.student_id}</span>
+              {studentData.admission_no && (
+                  <>
+                    <span>•</span>
+                    <span>{studentData.admission_no}</span>
+                  </>
+              )}
               <span>•</span>
               <span>{studentData.grade}</span>
             </div>
           </div>
           <div className="h-10 w-10 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center font-bold">
-            {studentData.student_name.charAt(0)}
+            {studentData.student_name ? studentData.student_name.charAt(0) : 'S'}
           </div>
         </div>
       </div>
 
       <div className="p-6">
         <div className="mb-2 text-sm text-gray-500 uppercase tracking-wider font-semibold">Total Due</div>
-        <div className="text-4xl font-extrabold text-orange-600">{formatCurrency(studentData.total_outstanding)}</div>
+        <div className={`text-4xl font-extrabold ${studentData.total_outstanding > 0 ? 'text-orange-600' : 'text-green-600'}`}>
+            {formatCurrency(studentData.total_outstanding || 0)}
+        </div>
 
         {studentData.advance_balance > 0 && (
           <div className="mt-4 p-3 bg-green-50 text-green-700 rounded-lg text-sm flex items-center">
@@ -182,11 +211,18 @@ const FeePaymentForm = () => {
             Has Advance Balance: {formatCurrency(studentData.advance_balance)}
           </div>
         )}
+         {/* Show message if no dues */}
+        {studentData.total_outstanding <= 0 && (
+          <div className="mt-4 p-3 bg-blue-50 text-blue-700 rounded-lg text-sm flex items-center">
+            <CheckCircle size={16} className="mr-2" />
+            No pending fees. Any payment will be added to Advance.
+          </div>
+        )}
       </div>
 
       <div className="bg-gray-50 px-6 py-4 border-t border-gray-100">
         <h4 className="text-xs font-semibold text-gray-500 uppercase mb-3">Pending Invoices</h4>
-        {studentData.fees.length > 0 ? (
+        {studentData.fees && studentData.fees.length > 0 ? (
           <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
             {studentData.fees.map(fee => (
               <div key={fee.id} className="flex justify-between text-sm p-2 bg-white rounded border border-gray-100 shadow-sm">
@@ -201,15 +237,6 @@ const FeePaymentForm = () => {
           <div className="text-sm text-gray-500 italic">No pending invoices.</div>
         )}
       </div>
-
-      <FeeReceiptModal 
-        isOpen={showReceipt} 
-        onClose={() => {
-          setShowReceipt(false);
-          navigate('/fees'); // Navigate away ONLY after they close the receipt
-        }} 
-        paymentId={newPaymentId} 
-      />
     </div>
   );
 
@@ -249,7 +276,7 @@ const FeePaymentForm = () => {
 
       <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
 
-        {/* Mobile Search (Only visible on small screens) */}
+        {/* Mobile Search */}
         <div className="sm:hidden mb-6 flex gap-2">
           <Input
             placeholder="Enter Student ID..."
@@ -289,7 +316,6 @@ const FeePaymentForm = () => {
 
         {studentData && (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
-
             {/* LEFT COLUMN: Context Info */}
             <div className="lg:col-span-1 space-y-6 animate-in slide-in-from-left-4 duration-500">
               {renderStudentCard()}
@@ -306,6 +332,7 @@ const FeePaymentForm = () => {
                 </div>
 
                 <form onSubmit={handleSubmit} className="space-y-6">
+                  {/* ... FORM INPUTS (Same as before) ... */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                     <div className="space-y-1.5">
                       <label className="text-sm font-semibold text-gray-700">Amount to Pay</label>
@@ -371,7 +398,6 @@ const FeePaymentForm = () => {
                   </div>
 
                   {/* ALLOCATION PREVIEW */}
-                  {/* Trigger condition: Either we have allocations OR we have an excess amount */}
                   {(allocations.length > 0 || (inputAmount > 0 && hasExcess)) && (
                     <div className="bg-gray-50 rounded-lg border border-gray-200 overflow-hidden mt-6">
                       <div className="px-4 py-3 bg-gray-100/50 border-b border-gray-200 flex justify-between items-center">
@@ -398,7 +424,7 @@ const FeePaymentForm = () => {
                           </div>
                         ))}
 
-                        {/* 🟢 EXCESS / ADVANCE ROW */}
+                        {/* EXCESS / ADVANCE ROW */}
                         {hasExcess && (
                           <div className="px-4 py-3 bg-blue-50 flex justify-between items-center">
                             <div className="flex items-center gap-2 text-blue-700">
@@ -443,6 +469,15 @@ const FeePaymentForm = () => {
           </div>
         )}
       </main>
+
+      <FeeReceiptModal 
+        isOpen={showReceipt} 
+        onClose={() => {
+          setShowReceipt(false);
+          navigate('/fees');
+        }} 
+        paymentId={newPaymentId} 
+      />
     </div>
   );
 };
