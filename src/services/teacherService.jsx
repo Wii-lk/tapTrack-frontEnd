@@ -428,6 +428,12 @@ const teacherService = {
     if (!response.ok) {
       throw new Error(data.message || 'Failed to initiate write mode');
     }
+
+    // 2. Handle empty success responses (204 No Content or empty body)
+    const contentType = response.headers.get("content-type");
+    if (!contentType || !contentType.includes("application/json") || response.status === 204) {
+        return { message: 'Write mode initiated successfully' };
+    }
     return data;
   },
 };
