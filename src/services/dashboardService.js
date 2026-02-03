@@ -165,7 +165,7 @@ export const dashboardService = {
 
     try {
         const token = localStorage.getItem("token");
-        const response = await fetch(`${API_BASE_URL}/dashboard/attendance-details`, {
+        const response = await fetch(`${API_BASE_URL}/dashboard/attendance-detail`, {
             method: "GET",
             headers: { Accept: "application/json", Authorization: `Bearer ${token}` },
         });
