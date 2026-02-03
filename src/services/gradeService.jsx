@@ -1,5 +1,5 @@
-// const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
-const API_BASE_URL = "http://localhost:8000/api";
+const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
+// const API_BASE_URL = "http://localhost:8000/api";
 
 export const USE_MOCK_DATA = false; // Toggle this for backend integration
 

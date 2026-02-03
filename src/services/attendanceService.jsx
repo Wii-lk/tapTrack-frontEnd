@@ -8,9 +8,9 @@
 
 // Base URL for your API.
 // IMPORTANT: Replace 'http://localhost:8000' with your actual API domain.
-// import { API_BASE_URL } from "../config/api";
+import { API_BASE_URL } from "../config/api";
 
-const API_BASE_URL = "http://localhost:8000/api";
+// const API_BASE_URL = "http://localhost:8000/api";
 // --- SERVICE CONFIGURATION ---
 // Set to true to use mock data (local) instead of real API calls.
 export const USE_MOCK_DATA = false;
