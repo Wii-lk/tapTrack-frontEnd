@@ -9,53 +9,52 @@ const MOCK_TEACHERS = [
   {
     id: 1,
     user_id: 101,
-    first_name: 'Kamal',
-    last_name: 'Perera',
-    email: 'kamal.perera@school.com',
-    phone_no: '+94771234567',
-    position: 'Math Teacher',
+    first_name: "Kamal",
+    last_name: "Perera",
+    email: "kamal.perera@school.com",
+    phone_no: "+94771234567",
+    position: "Math Teacher",
     is_active: true,
     unique_no: "RFID10001",
-    basic_salary: 50000.00,
-    date_of_birth: '1985-01-01',
-    qualification: 'B.Sc Mathematics',
-    gender: 'male',
-    address: '123, Galle Road, Colombo 03',
+    basic_salary: 50000.0,
+    date_of_birth: "1985-01-01",
+    qualification: "B.Sc Mathematics",
+    gender: "male",
+    address: "123, Galle Road, Colombo 03",
   },
   {
     id: 2,
     user_id: 102,
-    first_name: 'Sunethra',
-    last_name: 'Jayawardena',
-    email: 'sunethra.j@school.com',
-    phone_no: '+94772234567',
-    position: 'English Teacher',
+    first_name: "Sunethra",
+    last_name: "Jayawardena",
+    email: "sunethra.j@school.com",
+    phone_no: "+94772234567",
+    position: "English Teacher",
     is_active: true,
     unique_no: "RFID10002",
-    basic_salary: 55000.00,
-    date_of_birth: '1988-03-12',
-    qualification: 'M.A English',
-    gender: 'female',
-    address: '456, Kandy Road, Colombo 07',
+    basic_salary: 55000.0,
+    date_of_birth: "1988-03-12",
+    qualification: "M.A English",
+    gender: "female",
+    address: "456, Kandy Road, Colombo 07",
   },
   {
     id: 3,
     user_id: 103,
-    first_name: 'Nimal',
-    last_name: 'Silva',
-    email: 'nimal.silva@school.com',
-    phone_no: '+94773234567',
-    position: 'Science Teacher',
+    first_name: "Nimal",
+    last_name: "Silva",
+    email: "nimal.silva@school.com",
+    phone_no: "+94773234567",
+    position: "Science Teacher",
     is_active: false,
     unique_no: "RFID10003",
-    basic_salary: 48000.00,
-    date_of_birth: '1990-06-20',
-    qualification: 'B.Sc Chemistry',
-    gender: 'male',
-    address: '789, Negombo Road, Wattala',
+    basic_salary: 48000.0,
+    date_of_birth: "1990-06-20",
+    qualification: "B.Sc Chemistry",
+    gender: "male",
+    address: "789, Negombo Road, Wattala",
   },
 ];
-
 
 /**
  * Helper function to normalize API staff data fields to frontend teacher fields.
@@ -68,15 +67,16 @@ const normalizeStaffToTeacher = (staff) => {
     user_id: staff.user_id,
     firstName: staff.first_name,
     lastName: staff.last_name,
-    fullName: `${staff.first_name || ''} ${staff.last_name || ''}`.trim(),
+    fullName: `${staff.first_name || ""} ${staff.last_name || ""}`.trim(),
     email: staff.email,
     phone: staff.phone_no,
     designation: staff.position,
-    status: staff.is_active ? 'active' : 'inactive',
+    status: staff.is_active ? "active" : "inactive",
 
     // Pass through fields
     unique_no: staff.unique_no,
     employee_no: staff.employee_no, // <--- ADD THIS LINE
+    type: staff.type,
     basic_salary: staff.basic_salary,
     date_of_birth: staff.date_of_birth,
     qualification: staff.qualification,
@@ -103,17 +103,23 @@ const teacherService = {
             const searchLower = filters.search.toLowerCase();
             filteredStaff = filteredStaff.filter(
               (t) =>
-                (t.first_name && t.first_name.toLowerCase().includes(searchLower)) ||
-                (t.last_name && t.last_name.toLowerCase().includes(searchLower)) ||
+                (t.first_name &&
+                  t.first_name.toLowerCase().includes(searchLower)) ||
+                (t.last_name &&
+                  t.last_name.toLowerCase().includes(searchLower)) ||
                 (t.email && t.email.toLowerCase().includes(searchLower)) ||
-                (t.phone_no && t.phone_no.toLowerCase().includes(searchLower)) ||
-                (t.position && t.position.toLowerCase().includes(searchLower))
+                (t.phone_no &&
+                  t.phone_no.toLowerCase().includes(searchLower)) ||
+                (t.position && t.position.toLowerCase().includes(searchLower)),
             );
           }
 
-          if (filters.is_active !== undefined && filters.is_active !== '') {
-            const isActiveBool = filters.is_active === 'true' || filters.is_active === true;
-            filteredStaff = filteredStaff.filter((t) => t.is_active === isActiveBool);
+          if (filters.is_active !== undefined && filters.is_active !== "") {
+            const isActiveBool =
+              filters.is_active === "true" || filters.is_active === true;
+            filteredStaff = filteredStaff.filter(
+              (t) => t.is_active === isActiveBool,
+            );
           }
 
           // Pagination
@@ -141,28 +147,31 @@ const teacherService = {
 
     // Real API Call
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem("token");
       const queryParams = new URLSearchParams({ page, per_page: perPage });
-      if (filters.is_active !== undefined && filters.is_active !== '') queryParams.append('is_active', filters.is_active);
-      if (filters.search) queryParams.append('search', filters.search);
+      if (filters.is_active !== undefined && filters.is_active !== "")
+        queryParams.append("is_active", filters.is_active);
+      if (filters.position) queryParams.append("position", filters.position);
+      if (filters.search) queryParams.append("search", filters.search);
 
       const response = await fetch(`${API_BASE_URL}/staff?${queryParams}`, {
-        method: 'GET',
+        method: "GET",
         headers: {
-          Accept: 'application/json',
+          Accept: "application/json",
           Authorization: `Bearer ${token}`,
         },
       });
 
       const data = await response.json();
-      if (!response.ok) throw new Error(data.message || 'Failed to fetch staff');
+      if (!response.ok)
+        throw new Error(data.message || "Failed to fetch staff");
 
       data.data.teachers = data.data.staff.map(normalizeStaffToTeacher);
       delete data.data.staff;
 
       return data;
     } catch (error) {
-      throw new Error(error.message || 'Network error occurred');
+      throw new Error(error.message || "Network error occurred");
     }
   },
 
@@ -175,31 +184,31 @@ const teacherService = {
           if (staff) {
             const teacher = normalizeStaffToTeacher(staff);
             resolve({ success: true, data: teacher });
-          }
-          else reject(new Error('Teacher not found'));
+          } else reject(new Error("Teacher not found"));
         }, 500);
       });
     }
 
     // Real API Call
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem("token");
       const response = await fetch(`${API_BASE_URL}/staff/${id}`, {
-        method: 'GET',
+        method: "GET",
         headers: {
-          Accept: 'application/json',
+          Accept: "application/json",
           Authorization: `Bearer ${token}`,
         },
       });
 
       const data = await response.json();
       console.log(data);
-      if (!response.ok) throw new Error(data.message || 'Failed to fetch teacher');
+      if (!response.ok)
+        throw new Error(data.message || "Failed to fetch teacher");
 
       data.data = normalizeStaffToTeacher(data.data);
       return data;
     } catch (error) {
-      throw new Error(error.message || 'Network error occurred');
+      throw new Error(error.message || "Network error occurred");
     }
   },
 
@@ -217,31 +226,35 @@ const teacherService = {
           };
           MOCK_TEACHERS.push(newStaff);
           const newTeacher = normalizeStaffToTeacher(newStaff);
-          resolve({ success: true, message: 'Teacher created successfully', data: newTeacher });
+          resolve({
+            success: true,
+            message: "Teacher created successfully",
+            data: newTeacher,
+          });
         }, 800);
       });
     }
 
     // *** CORRECTED: Real API Call using POST /api/staff with JSON ***
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem("token");
 
       // Use FormData instead of JSON to handle the file upload
       const formData = new FormData();
 
       // Append all fields to FormData
-      Object.keys(teacherData).forEach(key => {
+      Object.keys(teacherData).forEach((key) => {
         if (teacherData[key] !== null && teacherData[key] !== undefined) {
           formData.append(key, teacherData[key]);
         }
       });
 
       const response = await fetch(`${API_BASE_URL}/staff`, {
-        method: 'POST',
+        method: "POST",
         headers: {
           // IMPORTANT: Do NOT set 'Content-Type': 'application/json'
           // The browser will automatically set 'multipart/form-data' with the boundary
-          Accept: 'application/json',
+          Accept: "application/json",
           Authorization: `Bearer ${token}`,
         },
         body: formData, // Send the FormData object
@@ -251,16 +264,16 @@ const teacherService = {
 
       if (!response.ok) {
         if (response.status === 422) {
-          const errorMessages = Object.values(data.errors).flat().join(' ');
-          throw new Error(errorMessages || 'Validation failed');
+          const errorMessages = Object.values(data.errors).flat().join(" ");
+          throw new Error(errorMessages || "Validation failed");
         }
-        throw new Error(data.message || 'Failed to create staff member');
+        throw new Error(data.message || "Failed to create staff member");
       }
 
       data.data = normalizeStaffToTeacher(data.data);
       return data;
     } catch (error) {
-      throw new Error(error.message || 'Network error occurred');
+      throw new Error(error.message || "Network error occurred");
     }
   },
 
@@ -278,16 +291,20 @@ const teacherService = {
             };
             MOCK_TEACHERS[index] = updatedStaff;
             const updatedTeacher = normalizeStaffToTeacher(updatedStaff);
-            resolve({ success: true, message: 'Teacher updated successfully', data: updatedTeacher });
+            resolve({
+              success: true,
+              message: "Teacher updated successfully",
+              data: updatedTeacher,
+            });
           } else {
-            reject(new Error('Teacher not found'));
+            reject(new Error("Teacher not found"));
           }
         }, 800);
       });
     }
 
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem("token");
 
       // Build FormData for multipart request
       const formData = new FormData();
@@ -297,21 +314,21 @@ const teacherService = {
         // skip undefined / null fields (unless you want to explicitly send null)
         if (val === undefined || val === null) continue;
 
-        if (key === 'photo') {
+        if (key === "photo") {
           // Only append if it's a File (new upload)
           if (val instanceof File) {
-            formData.append('photo', val);
+            formData.append("photo", val);
           } else {
             // If val is a string (existing URL/path) we usually skip it.
             // If your backend expects an explicit string path, append it:
             // formData.append('photo', val);
           }
-        } else if (key === 'password' && !val) {
+        } else if (key === "password" && !val) {
           // skip empty password on update
           continue;
         } else {
           // Convert booleans/numbers to strings for FormData
-          if (typeof val === 'boolean' || typeof val === 'number') {
+          if (typeof val === "boolean" || typeof val === "number") {
             formData.append(key, String(val));
           } else {
             formData.append(key, val);
@@ -321,21 +338,20 @@ const teacherService = {
 
       // IMPORTANT: method spoofing for PUT
 
-
       // Debug: inspect FormData contents (useful during dev)
-      if (process.env.NODE_ENV !== 'production') {
+      if (process.env.NODE_ENV !== "production") {
         for (const pair of formData.entries()) {
           // WARNING: Files log as File objects
           // eslint-disable-next-line no-console
-          console.log('FormData:', pair[0], pair[1]);
+          console.log("FormData:", pair[0], pair[1]);
         }
       }
 
       const response = await fetch(`${API_BASE_URL}/staff/${id}`, {
-        method: 'POST', // POST + _method=PUT (Laravel method spoof)
+        method: "POST", // POST + _method=PUT (Laravel method spoof)
         headers: {
-          Authorization: token ? `Bearer ${token}` : '',
-          Accept: 'application/json',
+          Authorization: token ? `Bearer ${token}` : "",
+          Accept: "application/json",
           // DO NOT set Content-Type when using FormData
         },
         body: formData,
@@ -353,10 +369,12 @@ const teacherService = {
 
       if (!response.ok) {
         if (response.status === 422 && data.errors) {
-          const errorMessages = Object.values(data.errors).flat().join(' ');
-          throw new Error(errorMessages || 'Validation failed');
+          const errorMessages = Object.values(data.errors).flat().join(" ");
+          throw new Error(errorMessages || "Validation failed");
         }
-        throw new Error(data.message || `Failed to update staff (${response.status})`);
+        throw new Error(
+          data.message || `Failed to update staff (${response.status})`,
+        );
       }
 
       // Normalize returned staff -> teacher shape if needed
@@ -368,11 +386,10 @@ const teacherService = {
     } catch (error) {
       // Helpful console logging for debugging
       // eslint-disable-next-line no-console
-      console.error('updateTeacher error:', error);
-      throw new Error(error.message || 'Network error occurred');
+      console.error("updateTeacher error:", error);
+      throw new Error(error.message || "Network error occurred");
     }
   },
-
 
   // Delete teacher/staff
   deleteTeacher: async (id) => {
@@ -382,43 +399,44 @@ const teacherService = {
           const index = MOCK_TEACHERS.findIndex((t) => t.id === parseInt(id));
           if (index !== -1) {
             MOCK_TEACHERS.splice(index, 1);
-            resolve({ success: true, message: 'Teacher deleted successfully' });
-          } else reject(new Error('Teacher not found'));
+            resolve({ success: true, message: "Teacher deleted successfully" });
+          } else reject(new Error("Teacher not found"));
         }, 500);
       });
     }
 
     // Real API Call (Assuming a DELETE endpoint exists)
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem("token");
       const response = await fetch(`${API_BASE_URL}/staff/${id}`, {
-        method: 'DELETE',
+        method: "DELETE",
         headers: {
           Authorization: `Bearer ${token}`,
-          Accept: 'application/json',
+          Accept: "application/json",
         },
       });
 
       if (response.status === 204) {
-        return { success: true, message: 'Teacher deleted successfully' };
+        return { success: true, message: "Teacher deleted successfully" };
       }
 
       const data = await response.json();
-      if (!response.ok) throw new Error(data.message || 'Failed to delete staff member');
+      if (!response.ok)
+        throw new Error(data.message || "Failed to delete staff member");
 
       return data;
     } catch (error) {
-      throw new Error(error.message || 'Network error occurred');
+      throw new Error(error.message || "Network error occurred");
     }
   },
 
   switchToWriteMode: async (teacherId) => {
-      const token = localStorage.getItem('token');
+    const token = localStorage.getItem("token");
     const response = await fetch(`${API_BASE_URL}/write/teacher`, {
-      method: 'POST', // Actions are usually POST requests
+      method: "POST", // Actions are usually POST requests
       headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}` 
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify({ teacherId: teacherId }), // Sending the ID
     });
@@ -426,13 +444,17 @@ const teacherService = {
     const data = await response.json();
     console.log(data);
     if (!response.ok) {
-      throw new Error(data.message || 'Failed to initiate write mode');
+      throw new Error(data.message || "Failed to initiate write mode");
     }
 
     // 2. Handle empty success responses (204 No Content or empty body)
     const contentType = response.headers.get("content-type");
-    if (!contentType || !contentType.includes("application/json") || response.status === 204) {
-        return { message: 'Write mode initiated successfully' };
+    if (
+      !contentType ||
+      !contentType.includes("application/json") ||
+      response.status === 204
+    ) {
+      return { message: "Write mode initiated successfully" };
     }
     return data;
   },

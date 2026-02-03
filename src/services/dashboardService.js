@@ -3,7 +3,8 @@
  * Handles Dashboard Summary and Report Data
  */
 
-const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
+// const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
+const API_BASE_URL = "http://localhost:8000/api";
 export const USE_MOCK_DATA = false; // Toggle for backend integration
 
 // --- MOCK DATA (Keep for fallback) ---
@@ -140,11 +141,42 @@ export const dashboardService = {
 
       return data;
     } catch (error) {
-      console.error("getCurrentPresence Error:", error);
       // Return safe fallback so dashboard doesn't crash
       return { success: false, data: MOCK_CURRENT_PRESENCE }; 
     }
   },
+
+  /**
+   * GET /api/dashboard/attendance-details
+   * Fetch detailed present/absent lists for popup
+   */
+  getAttendanceDetails: async () => {
+    if (USE_MOCK_DATA) {
+        // Mock Response similar to backend structure
+        return new Promise(res => setTimeout(() => res({
+            success: true,
+            data: {
+                overview: { student_total: 100, student_present: 80, staff_total: 20, staff_present: 15 },
+                students: { present: [], absent: [] },
+                staff: { present: [], absent: [] }
+            }
+        }), 500));
+    }
+
+    try {
+        const token = localStorage.getItem("token");
+        const response = await fetch(`${API_BASE_URL}/dashboard/attendance-details`, {
+            method: "GET",
+            headers: { Accept: "application/json", Authorization: `Bearer ${token}` },
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.message || "Failed to fetch details");
+        return data;
+    } catch (error) {
+        console.error("Attendance Details Error:", error);
+        return { success: false, message: error.message };
+    }
+  }
 };
 
 export default dashboardService;

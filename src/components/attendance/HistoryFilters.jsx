@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
-import { Search, Download } from 'lucide-react'; // Import Download icon
-import Button from '../common/Button';
-import Input from '../common/Input'; // Assuming you have this
+import React, { useState } from "react";
+import { Search, Download } from "lucide-react"; // Import Download icon
+import Button from "../common/Button";
+import Input from "../common/Input"; // Assuming you have this
 
 /**
  * Filters for the "History & Reports" view
@@ -9,10 +9,10 @@ import Input from '../common/Input'; // Assuming you have this
 // Add onExport to props
 const HistoryFilters = ({ onSearch, loading, onExport }) => {
   const [filters, setFilters] = useState({
-    user_id: '',
-    from_date: '',
-    to_date: '',
-    status: '',
+    user_id: "",
+    from_date: "",
+    to_date: "",
+    status: "",
   });
 
   const handleChange = (e) => {
@@ -25,13 +25,16 @@ const HistoryFilters = ({ onSearch, loading, onExport }) => {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="bg-white p-4 rounded-lg shadow-md space-y-4">
+    <form
+      onSubmit={handleSubmit}
+      className="bg-white p-4 rounded-lg shadow-md space-y-4"
+    >
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Input
-          name="user_id"
-          label="User ID"
-          placeholder="Enter Name"
-          value={filters.user_name}
+          name="search"
+          label="Search User"
+          placeholder="Name or ID"
+          value={filters.search || ""}
           onChange={handleChange}
         />
         <Input
@@ -58,21 +61,17 @@ const HistoryFilters = ({ onSearch, loading, onExport }) => {
       </div>
       {/* Updated this section to include the export button */}
       <div className="flex flex-col sm:flex-row justify-end gap-3">
-        <Button 
-          type="button" 
-          variant="outline" 
-          onClick={onExport} 
+        <Button
+          type="button"
+          variant="outline"
+          onClick={onExport}
           disabled={loading}
           className="w-full sm:w-auto"
         >
           <Download size={18} className="mr-2" />
           Export Data
         </Button>
-        <Button 
-          type="submit" 
-          loading={loading} 
-          className="w-full sm:w-auto"
-        >
+        <Button type="submit" loading={loading} className="w-full sm:w-auto">
           <Search size={18} className="mr-2" />
           Search History
         </Button>

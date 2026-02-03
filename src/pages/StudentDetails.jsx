@@ -1,18 +1,19 @@
-import React, { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Download } from 'lucide-react';
-import Button from '../components/common/Button';
-import Card from '../components/common/Card';
-import studentService from '../services/studentService';
-import Alert from '../components/common/Alert';
-import LoadingSpinner from '../components/common/LoadingSpinner';
+import React, { useEffect, useState } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { ArrowLeft, Download } from "lucide-react";
+import Button from "../components/common/Button";
+import Card from "../components/common/Card";
+import studentService from "../services/studentService";
+import { feeService } from "../services/feeService";
+import Alert from "../components/common/Alert";
+import LoadingSpinner from "../components/common/LoadingSpinner";
 
 const StudentDetails = () => {
   const [student, setStudent] = useState(null);
-  // const [fees, setFees] = useState([]); // <-- TEMPORARILY COMMENTED OUT
+  const [fees, setFees] = useState({ summary: {}, records: [], payments: [] });
   // const [attendance, setAttendance] = useState([]); // <-- TEMPORARILY COMMENTED OUT
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
 
   const { id } = useParams();
   const navigate = useNavigate();
@@ -22,25 +23,36 @@ const StudentDetails = () => {
     const fetchDetails = async () => {
       try {
         setLoading(true);
-        setError('');
-        
-        // <-- TEMPORARILY MODIFIED: Removed fees and attendance calls
-        // We only fetch the student data now
-        const stuRes = await studentService.getStudentById(id);
-        
-        /* // Original Promise.all
-        const [stuRes, attRes] = await Promise.all([
+        setError("");
+
+        const [stuRes, feeRes, payRes, advRes] = await Promise.all([
           studentService.getStudentById(id),
-          // studentService.getStudentFeeRecords(id), // <-- TEMPORARILY COMMENTED OUT
-          // studentService.getStudentAttendance(id), // <-- TEMPORARILY COMMENTED OUT
+          feeService.getOutstandingFees(id),
+          feeService.getPaymentHistory({ student_id: id }),
+          feeService.getAdvanceBalance(id),
         ]);
-        */
-        
+
         setStudent(stuRes.data);
-        // setFees(feesRes.data || []); // <-- TEMPORARILY COMMENTED OUT
-        // setAttendance(attRes.data || []); // <-- TEMPORARILY COMMENTED OUT
+
+        // Process fee data
+        const studentFeeData = feeRes.data?.students?.[0] || {};
+
+        // Process Payment History
+        const paymentHistory = payRes.data?.payments || [];
+
+        // Process Advance Balance
+        const advanceBalance = advRes.data?.total_advance_balance || 0;
+
+        setFees({
+          summary: {
+            total: studentFeeData.total_outstanding || 0,
+            advance: advanceBalance,
+          },
+          records: studentFeeData.fees || [],
+          payments: paymentHistory,
+        });
       } catch (err) {
-        setError(err?.message || 'Failed to load student details');
+        setError(err?.message || "Failed to load student details");
       } finally {
         setLoading(false);
       }
@@ -48,25 +60,19 @@ const StudentDetails = () => {
     fetchDetails();
   }, [id]);
 
-  /* <-- TEMPORARILY COMMENTED OUT
-  const feesSummary = () => {
-    const total = fees.reduce((s, f) => s + Number(f.amount || 0), 0);
-    const paid = fees.reduce((s, f) => s + Number(f.paidAmount || 0), 0);
-    const outstanding = total - paid;
-    return { total, paid, outstanding };
-  };
-  */
-
   const downloadReport = () => {
     const rows = [];
-    rows.push(['Student Info']);
-    rows.push(['ID', student.id]);
-    rows.push(['Full Name', student.fullName || `${student.firstName} ${student.lastName}`]);
-    rows.push(['Admission No', student.admissionNo || '']);
-    rows.push(['Class', student.class || '']);
-    rows.push(['Phone', student.guardianPhone || '']);
+    rows.push(["Student Info"]);
+    rows.push(["ID", student.id]);
+    rows.push([
+      "Full Name",
+      student.fullName || `${student.firstName} ${student.lastName}`,
+    ]);
+    rows.push(["Admission No", student.admissionNo || ""]);
+    rows.push(["Class", student.class || ""]);
+    rows.push(["Phone", student.guardianPhone || ""]);
     rows.push([]);
-    
+
     /* <-- TEMPORARILY COMMENTED OUT (Fees)
     rows.push(['Fees Summary']);
     const sum = feesSummary();
@@ -91,12 +97,14 @@ const StudentDetails = () => {
     */
 
     // CSV creation
-    const csvContent = rows.map((r) => r.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(',')).join('\n');
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const csvContent = rows
+      .map((r) => r.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(","))
+      .join("\n");
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
+    const a = document.createElement("a");
     a.href = url;
-    a.download = `${student?.fullName || 'student'}_report.csv`;
+    a.download = `${student?.fullName || "student"}_report.csv`;
     a.click();
     URL.revokeObjectURL(url);
   };
@@ -104,14 +112,14 @@ const StudentDetails = () => {
   if (loading) {
     return (
       <div className="bg-white rounded-lg shadow-md p-8 text-center">
-        <LoadingSpinner /> 
+        <LoadingSpinner />
         <p className="mt-4 text-gray-600">Loading student details...</p>
       </div>
     );
   }
 
   if (error) {
-    return <Alert type="error" message={error} onClose={() => setError('')} />;
+    return <Alert type="error" message={error} onClose={() => setError("")} />;
   }
 
   if (!student) {
@@ -166,54 +174,147 @@ const StudentDetails = () => {
           </div>
           <div>
             <h4 className="text-sm text-gray-500">Address</h4>
-            <div>{student.address || '-'}</div>
+            <div>{student.address || "-"}</div>
           </div>
           <div>
             <h4 className="text-sm text-gray-500">DOB</h4>
-            <div>{student.dateOfBirth || '-'}</div>
+            <div>{student.dateOfBirth || "-"}</div>
           </div>
         </div>
       </Card>
 
       {/* <-- TEMPORARILY MODIFIED: Grid is now 1 column */}
-      <div className="grid grid-cols-1 md:grid-cols-1 gap-4">
-        
-        {/*
-        // <-- TEMPORARILY COMMENTED OUT (Fees Card)
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Card>
           <h3 className="text-lg font-semibold mb-3">Fees Summary</h3>
-          <div className="grid grid-cols-3 gap-4">
-            <div>
-              <p className="text-sm text-gray-500">Total</p>
-              <p className="text-xl font-semibold">{sum.total}</p>
-            </div>
-            <div>
-              <p className="text-sm text-gray-500">Paid</p>
-              <p className="text-xl font-semibold">{sum.paid}</p>
-            </div>
-            <div>
-              <p className="text-sm text-gray-500">Outstanding</p>
-              <p className="text-xl font-semibold text-red-600">{sum.outstanding}</p>
-            </div>
-          </div>
+          {(() => {
+            const totalDue = fees.records.reduce(
+              (sum, f) => sum + parseFloat(f.total_amount || 0),
+              0,
+            );
+            const outstanding = fees.records.reduce(
+              (sum, f) => sum + parseFloat(f.outstanding || 0),
+              0,
+            );
+            const advance = parseFloat(fees.summary.advance || 0);
 
-          <div className="mt-4">
-            <h4 className="text-sm text-gray-600 mb-2">Recent Fees</h4>
-            {fees.length === 0 ? (
-              <p className="text-sm text-gray-500">No fee records</p>
-            ) : (
-              <div className="space-y-2">
-                {fees.slice(0, 5).map((f) => (
-                  <div key={f.id} className="flex justify-between text-sm">
-                    <div>{f.feeType || 'Invoice'}</div>
-                    <div>{f.amount} ({f.status || ''})</div>
-                  </div>
-                ))}
+            return (
+              <div className="grid grid-cols-3 gap-4 border-b pb-4 mb-4 border-gray-100">
+                <div>
+                  <p className="text-sm text-gray-500">Total Outstanding</p>
+                  <p
+                    className={`text-xl font-semibold ${outstanding > 0 ? "text-red-600" : "text-gray-800"}`}
+                  >
+                    {outstanding.toLocaleString()}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-500">Advance Balance</p>
+                  <p
+                    className={`text-xl font-semibold ${advance > 0 ? "text-green-600" : "text-gray-800"}`}
+                  >
+                    {advance.toLocaleString()}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-500">Last Payment</p>
+                  <p className="text-lg font-medium">
+                    {fees.payments && fees.payments.length > 0
+                      ? fees.payments[0].payment_date?.split("T")[0]
+                      : "-"}
+                  </p>
+                </div>
               </div>
-            )}
+            );
+          })()}
+
+          <div className="space-y-6">
+            {/* Outstanding Invoices Section */}
+            <div>
+              <h4 className="text-sm font-semibold text-gray-700 mb-2 uppercase tracking-wide">
+                Outstanding Invoices
+              </h4>
+              {fees.records.length === 0 ? (
+                <p className="text-sm text-gray-500 italic bg-gray-50 p-2 rounded">
+                  No outstanding invoices.
+                </p>
+              ) : (
+                <div className="space-y-2">
+                  {fees.records.map((f) => (
+                    <div
+                      key={f.id}
+                      className="flex justify-between items-center text-sm p-3 bg-white border border-gray-100 rounded-lg shadow-sm"
+                    >
+                      <div>
+                        <div className="font-medium text-gray-900">
+                          {f.month_name || `Month ${f.month}`} {f.year}
+                        </div>
+                        <div className="text-xs text-red-500">
+                          Due: {f.due_date}
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <div className="font-semibold text-gray-900">
+                          {parseFloat(f.outstanding).toLocaleString()}
+                        </div>
+                        <div className="text-xs text-orange-600 font-medium uppercase">
+                          {f.status}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Payment History Section */}
+            <div>
+              <h4 className="text-sm font-semibold text-gray-700 mb-2 uppercase tracking-wide">
+                Recent Payments
+              </h4>
+              {fees.payments && fees.payments.length === 0 ? (
+                <p className="text-sm text-gray-500 italic bg-gray-50 p-2 rounded">
+                  No payments found.
+                </p>
+              ) : (
+                <div className="space-y-2">
+                  {fees.payments?.slice(0, 5).map((p) => (
+                    <div
+                      key={p.id}
+                      className="flex justify-between items-center text-sm p-3 bg-green-50 rounded-lg border border-green-100"
+                    >
+                      <div>
+                        <div className="font-medium text-gray-900">
+                          Receipt #{p.id}
+                        </div>
+                        <div className="text-xs text-gray-500">
+                          {p.payment_date?.split("T")[0]} • {p.payment_method}
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <div className="font-bold text-green-700">
+                          +{parseFloat(p.amount).toLocaleString()}
+                        </div>
+                        {p.advance_amount > 0 && (
+                          <div className="text-xs text-green-600">
+                            Incl. advance
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                  {fees.payments?.length > 5 && (
+                    <div className="text-center mt-2">
+                      <span className="text-xs text-gray-500">
+                        Showing last 5 payments
+                      </span>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
         </Card>
-        */}
 
         {/*
         // <-- TEMPORARILY COMMENTED OUT (Attendance Card)
@@ -245,7 +346,6 @@ const StudentDetails = () => {
           )}
         </Card>
         */}
-
       </div>
     </div>
   );

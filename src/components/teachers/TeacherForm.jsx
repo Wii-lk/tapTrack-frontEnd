@@ -1,72 +1,104 @@
-import React, { useState, useEffect } from 'react';
-import { Upload, User, Hash, Mail, Phone, Calendar, Briefcase, MapPin, Lock, UserCheck } from 'lucide-react';
-import Button from '../common/Button';
-import Input from '../common/Input';
-import Select from '../common/Select';
-import TextArea from '../common/TextArea';
+import React, { useState, useEffect } from "react";
+import {
+  Upload,
+  User,
+  Hash,
+  Mail,
+  Phone,
+  Calendar,
+  Briefcase,
+  MapPin,
+  Lock,
+  UserCheck,
+} from "lucide-react";
+import Button from "../common/Button";
+import Input from "../common/Input";
+import Select from "../common/Select";
+import TextArea from "../common/TextArea";
 
 // Helper to get today's date in YYYY-MM-DD format
 const getTodayDate = () => {
   const today = new Date();
   const year = today.getFullYear();
-  const month = String(today.getMonth() + 1).padStart(2, '0');
-  const day = String(today.getDate()).padStart(2, '0');
+  const month = String(today.getMonth() + 1).padStart(2, "0");
+  const day = String(today.getDate()).padStart(2, "0");
   return `${year}-${month}-${day}`;
 };
 
 // Helper to create the initial empty state
 const getInitialState = () => ({
-  first_name: '',
-  last_name: '',
-  username: '',
-  password: '',
-  gender: '',
-  date_of_birth: '',
-  address: '',
+  first_name: "",
+  last_name: "",
+  username: "",
+  password: "",
+  gender: "",
+  date_of_birth: "",
+  address: "",
   photo: null,
-  // unique_no: '',      // Existing RFID/Unique ID
-  // employee_no: '',    // <--- NEW FIELD
-  email: '',
-  phone_no: '',
-  position: '',
-  qualification: '',
-  basic_salary: '',
-  parent_staff_id: '',
-  type: 'permanent',
+  unique_no: "", // Existing RFID/Unique ID
+  employee_no: "", // <--- NEW FIELD
+  email: "",
+  phone_no: "",
+  position: "",
+  qualification: "",
+  basic_salary: "",
+  parent_staff_id: "",
+  type: "permanent",
   hire_date: getTodayDate(),
   is_active: 1,
 });
 
 const TeacherForm = ({ teacher, onSubmit, onCancel, loading }) => {
   const [formData, setFormData] = useState(getInitialState());
-  const [photoPreview, setPhotoPreview] = useState('');
+  const [photoPreview, setPhotoPreview] = useState("");
 
   useEffect(() => {
     if (teacher) {
       setFormData({
-        // ... existing mappings
-        type: teacher.type || 'permanent',
-        is_active: teacher.status === 'active' || teacher.is_active === true || teacher.is_active === 1 ? 1 : 0,
+        first_name: teacher.firstName || "",
+        last_name: teacher.lastName || "",
+        username: teacher.username || "",
+        password: "", // Password is not populated for security
+        gender: teacher.gender || "",
+        date_of_birth: teacher.date_of_birth || "",
+        address: teacher.address || "",
+        photo: null,
+        unique_no: teacher.unique_no || "",
+        employee_no: teacher.employee_no || "",
+        email: teacher.email || "",
+        phone_no: teacher.phone || "",
+        position: teacher.designation || "",
+        qualification: teacher.qualification || "",
+        basic_salary: teacher.basic_salary || "",
+        parent_staff_id: teacher.parent_staff_id || "",
+        type: teacher.type || "permanent",
+        hire_date: teacher.hire_date || getTodayDate(),
+        is_active:
+          teacher.status === "active" ||
+          teacher.is_active === true ||
+          teacher.is_active === 1
+            ? 1
+            : 0,
       });
-      setPhotoPreview('');
+      setPhotoPreview("");
     } else {
       setFormData(getInitialState());
-      setPhotoPreview('');
+      setPhotoPreview("");
     }
   }, [teacher]);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [name]: type === 'checkbox' ? (checked ? 1 : 0) : value,
+      [name]: type === "checkbox" ? (checked ? 1 : 0) : value,
     }));
   };
 
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (file) {
-      setFormData(prev => ({ ...prev, photo: file }));
+      setFormData((prev) => ({ ...prev, photo: file }));
 
       const reader = new FileReader();
       reader.onloadend = () => {
@@ -74,8 +106,8 @@ const TeacherForm = ({ teacher, onSubmit, onCancel, loading }) => {
       };
       reader.readAsDataURL(file);
     } else {
-      setFormData(prev => ({ ...prev, photo: null }));
-      setPhotoPreview('');
+      setFormData((prev) => ({ ...prev, photo: null }));
+      setPhotoPreview("");
     }
   };
 
@@ -85,9 +117,11 @@ const TeacherForm = ({ teacher, onSubmit, onCancel, loading }) => {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4 md:space-y-6 max-h-[80vh] overflow-y-auto p-1">
+    <form
+      onSubmit={handleSubmit}
+      className="space-y-4 md:space-y-6 max-h-[80vh] overflow-y-auto p-1"
+    >
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
-
         {/* --- SECTION 1: PERSONAL INFORMATION --- */}
         <div className="md:col-span-2 border-b border-gray-100 pb-2 mb-2">
           <h3 className="text-lg font-bold text-gray-800 flex items-center gap-2">
@@ -199,7 +233,7 @@ const TeacherForm = ({ teacher, onSubmit, onCancel, loading }) => {
           value={formData.password}
           onChange={handleChange}
           required={!teacher}
-          placeholder={teacher ? 'Leave blank to keep current password' : ''}
+          placeholder={teacher ? "Leave blank to keep current password" : ""}
           icon={Lock}
         />
 
@@ -223,27 +257,26 @@ const TeacherForm = ({ teacher, onSubmit, onCancel, loading }) => {
         </Select>
 
         {/* 🟢 NEW FIELD: Employee ID */}
-        {/* <Input
+        <Input
           label="Employee ID *"
           name="employee_no"
           value={formData.employee_no}
           onChange={handleChange}
           required
-          placeholder="e.g. EMP-001"
+          placeholder="e.g. TPS-20**"
           icon={Hash}
-        /> */}
+        />
 
-        {/* Conditionally Show Unique ID (RFID) only in edit mode */}
-        {/* {!!teacher && (
+        {!!teacher && (
           <Input
             label="Unique ID (System/RFID)"
             name="unique_no"
             value={formData.unique_no}
             onChange={handleChange}
-            disabled={true} 
+            disabled={true}
             icon={Hash}
           />
-        )} */}
+        )}
 
         <Input
           label="Email Address *"
@@ -313,14 +346,17 @@ const TeacherForm = ({ teacher, onSubmit, onCancel, loading }) => {
             onChange={handleChange}
             className="h-5 w-5 text-blue-600 focus:ring-blue-500 border-gray-300 rounded cursor-pointer"
           />
-          <label htmlFor="is_active" className="ml-3 block text-sm font-medium text-gray-900 cursor-pointer select-none">
+          <label
+            htmlFor="is_active"
+            className="ml-3 block text-sm font-medium text-gray-900 cursor-pointer select-none"
+          >
             Active Staff Member
             <span className="block text-xs text-gray-500 font-normal">
-              Disable this to restrict system access without deleting the record.
+              Disable this to restrict system access without deleting the
+              record.
             </span>
           </label>
         </div>
-
       </div>
 
       {/* Form Actions */}
@@ -334,12 +370,8 @@ const TeacherForm = ({ teacher, onSubmit, onCancel, loading }) => {
         >
           Cancel
         </Button>
-        <Button
-          type="submit"
-          loading={loading}
-          className="w-full sm:w-auto"
-        >
-          {teacher ? 'Update Staff Member' : 'Create Staff Member'}
+        <Button type="submit" loading={loading} className="w-full sm:w-auto">
+          {teacher ? "Update Staff Member" : "Create Staff Member"}
         </Button>
       </div>
     </form>

@@ -3,8 +3,8 @@
  * Manages all API requests for the Fee Management workflow.
  */
 
-const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
-// const API_BASE_URL = "http://localhost:8000/api";
+// const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
+const API_BASE_URL = "http://localhost:8000/api";
 export const USE_MOCK_DATA = false; // Toggle this for backend integration
 
 // --- MOCK DATA ---
@@ -165,6 +165,35 @@ export const feeService = {
       });
       const data = await response.json();
       if (!response.ok) throw new Error(data.message || 'Failed to fetch receipt');
+      return data;
+    } catch (error) {
+      throw new Error(error.message);
+    }
+  },
+  /**
+   * GET /api/fees/advance-balance
+   */
+  getAdvanceBalance: async (studentId) => {
+    if (USE_MOCK_DATA) {
+      return new Promise(res => setTimeout(() => res({ 
+        success: true, 
+        data: { 
+          student_id: studentId,
+          student_name: "Mock Student",
+          advances: [],
+            total_advance_balance: 0
+        } 
+      }), 400));
+    }
+
+    try {
+      const token = localStorage.getItem("token");
+      const response = await fetch(`${API_BASE_URL}/fees/advance-balance?student_id=${studentId}`, {
+        method: 'GET',
+        headers: { Accept: 'application/json', Authorization: `Bearer ${token}` },
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.message || 'Failed to fetch advance balance');
       return data;
     } catch (error) {
       throw new Error(error.message);

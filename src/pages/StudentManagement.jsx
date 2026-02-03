@@ -1,16 +1,16 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { UserPlus } from 'lucide-react';
-import Button from '../components/common/Button';
-import Card from '../components/common/Card';
-import Modal from '../components/common/Modal';
-import Pagination from '../components/common/Pagination';
-import Alert from '../components/common/Alert';
-import StudentFilters from '../components/students/StudentFilters';
-import StudentTable from '../components/students/StudentTable';
-import StudentForm from '../components/students/StudentForm';
-import DeleteConfirmModal from '../components/students/DeleteConfirmModal';
-import studentService from '../services/studentService';
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { UserPlus } from "lucide-react";
+import Button from "../components/common/Button";
+import Card from "../components/common/Card";
+import Modal from "../components/common/Modal";
+import Pagination from "../components/common/Pagination";
+import Alert from "../components/common/Alert";
+import StudentFilters from "../components/students/StudentFilters";
+import StudentTable from "../components/students/StudentTable";
+import StudentForm from "../components/students/StudentForm";
+import DeleteConfirmModal from "../components/students/DeleteConfirmModal";
+import studentService from "../services/studentService";
 
 const StudentManagement = () => {
   const navigate = useNavigate();
@@ -18,8 +18,8 @@ const StudentManagement = () => {
   const [students, setStudents] = useState([]);
   const [loading, setLoading] = useState(false);
   const [formLoading, setFormLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
 
   // Modal states
   const [isFormModalOpen, setIsFormModalOpen] = useState(false);
@@ -31,13 +31,13 @@ const StudentManagement = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
 
-
   // Filters
   // *** CORRECTED: State names now match the API ***
   const [filters, setFilters] = useState({
-    search: '',
-    grade_id: '',
-    is_active: '',
+    search: "",
+    grade_id: "",
+    is_active: "",
+    fee_status: "",
   });
 
   useEffect(() => {
@@ -49,24 +49,22 @@ const StudentManagement = () => {
   const fetchStudents = async () => {
     try {
       setLoading(true);
-      setError('');
+      setError("");
 
       const response = await studentService.getStudents(
         currentPage,
         10,
-        filters
+        filters,
       );
 
       setStudents(response.data.students || []);
       setTotalPages(response.data.pagination?.last_page || 1);
     } catch (err) {
-      setError(err.message || 'Failed to fetch students');
+      setError(err.message || "Failed to fetch students");
     } finally {
       setLoading(false);
     }
   };
-
-
 
   const handleAddNew = () => {
     setSelectedStudent(null);
@@ -90,14 +88,14 @@ const StudentManagement = () => {
   const handleFormSubmit = async (formData, callback) => {
     try {
       setFormLoading(true);
-      setError('');
+      setError("");
 
       if (selectedStudent) {
         await studentService.updateStudent(selectedStudent.id, formData);
-        setSuccess('Student updated successfully!');
+        setSuccess("Student updated successfully!");
       } else {
         await studentService.createStudent(formData);
-        setSuccess('Student added successfully!');
+        setSuccess("Student added successfully!");
       }
 
       fetchStudents();
@@ -114,15 +112,12 @@ const StudentManagement = () => {
     }
   };
 
-
-
-
   const handleDeleteConfirm = async () => {
     try {
       setFormLoading(true);
-      setError('');
+      setError("");
       await studentService.deleteStudent(selectedStudent.id);
-      setSuccess('Student deleted successfully!');
+      setSuccess("Student deleted successfully!");
       setIsDeleteModalOpen(false);
       fetchStudents();
     } catch (err) {
@@ -140,19 +135,19 @@ const StudentManagement = () => {
   const handleResetFilters = () => {
     // *** CORRECTED: Reset matches the new state structure ***
     setFilters({
-      search: '',
-      grade_id: '',
-      is_active: '',
+      search: "",
+      grade_id: "",
+      is_active: "",
+      fee_status: "",
     });
     setCurrentPage(1);
   };
 
   const handlePageChange = (page) => {
-  if (page >= 1 && page <= totalPages) {
-    setCurrentPage(page);
-  }
-};
-
+    if (page >= 1 && page <= totalPages) {
+      setCurrentPage(page);
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -160,8 +155,12 @@ const StudentManagement = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pt-4 sm:pt-0">
         <div>
-          <h2 className="text-xl md:text-2xl font-bold text-gray-800">Student Management</h2>
-          <p className="text-sm text-gray-600 mt-1">Manage all students in the system</p>
+          <h2 className="text-xl md:text-2xl font-bold text-gray-800">
+            Student Management
+          </h2>
+          <p className="text-sm text-gray-600 mt-1">
+            Manage all students in the system
+          </p>
         </div>
         <Button
           onClick={handleAddNew}
@@ -174,9 +173,15 @@ const StudentManagement = () => {
       </div>
 
       {/* Alerts */}
-      {error && <Alert type="error" message={error} onClose={() => setError('')} />}
+      {error && (
+        <Alert type="error" message={error} onClose={() => setError("")} />
+      )}
       {success && (
-        <Alert type="success" message={success} onClose={() => setSuccess('')} />
+        <Alert
+          type="success"
+          message={success}
+          onClose={() => setSuccess("")}
+        />
       )}
 
       {/* Filters */}
@@ -204,12 +209,11 @@ const StudentManagement = () => {
         />
       )}
 
-
       {/* Form Modal */}
       <Modal
         isOpen={isFormModalOpen}
         onClose={() => setIsFormModalOpen(false)}
-        title={selectedStudent ? 'Edit Student' : 'Add New Student'}
+        title={selectedStudent ? "Edit Student" : "Add New Student"}
         size="lg"
       >
         <StudentForm
