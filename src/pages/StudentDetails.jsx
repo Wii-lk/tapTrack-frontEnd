@@ -269,45 +269,77 @@ const StudentDetails = () => {
 
             {/* Payment History Section */}
             <div>
-              <h4 className="text-sm font-semibold text-gray-700 mb-2 uppercase tracking-wide">
-                Recent Payments
-              </h4>
+              <div className="flex items-center justify-between mb-3">
+                <h4 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">
+                  Recent Payments (Last 5)
+                </h4>
+              </div>
+
               {fees.payments && fees.payments.length === 0 ? (
-                <p className="text-sm text-gray-500 italic bg-gray-50 p-2 rounded">
-                  No payments found.
+                <p className="text-sm text-gray-500 italic bg-gray-50 p-3 rounded-lg border border-gray-100">
+                  No payments found for this student.
                 </p>
               ) : (
-                <div className="space-y-2">
-                  {fees.payments?.slice(0, 5).map((p) => (
+                <div className="border border-gray-100 rounded-xl overflow-hidden shadow-sm">
+                  {fees.payments?.slice(0, 5).map((p, index) => (
                     <div
-                      key={p.id}
-                      className="flex justify-between items-center text-sm p-3 bg-green-50 rounded-lg border border-green-100"
+                      key={p.id || index}
+                      className={`
+                        flex flex-col sm:flex-row sm:items-center justify-between p-4 
+                        border-b border-gray-100 last:border-b-0 hover:bg-gray-50 transition-colors
+                        ${index % 2 === 0 ? "bg-white" : "bg-gray-50/30"}
+                      `}
                     >
-                      <div>
-                        <div className="font-medium text-gray-900">
-                          Receipt #{p.id}
+                      <div className="flex items-start gap-3 mb-2 sm:mb-0">
+                        <div className="h-10 w-10 rounded-full bg-green-50 flex items-center justify-center text-green-600 font-bold text-xs shrink-0 border border-green-100">
+                          {p.payment_method === "cash" ? "💵" : "🏦"}
                         </div>
-                        <div className="text-xs text-gray-500">
-                          {p.payment_date?.split("T")[0]} • {p.payment_method}
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <div className="font-semibold text-gray-900">
+                              {parseFloat(p.amount).toLocaleString("en-US", {
+                                style: "currency",
+                                currency: "LKR",
+                              })}
+                            </div>
+                            <span className="text-[10px] uppercase font-bold px-1.5 py-0.5 rounded bg-green-100 text-green-700 border border-green-200">
+                              Paid
+                            </span>
+                          </div>
+
+                          <div className="text-xs text-gray-500 mt-1">
+                            📅 {p.payment_date?.split("T")[0]} &bull;{" "}
+                            {p.payment_type || "Tuition Fee"}
+                          </div>
+                          {p.notes && (
+                            <div className="text-xs text-gray-500 mt-0.5 italic max-w-xs truncate">
+                              "{p.notes}"
+                            </div>
+                          )}
                         </div>
                       </div>
-                      <div className="text-right">
-                        <div className="font-bold text-green-700">
-                          +{parseFloat(p.amount).toLocaleString()}
+
+                      <div className="text-right pl-12 sm:pl-0">
+                        <div className="text-xs font-mono text-gray-400 mb-0.5">
+                          RCP #{p.id}
                         </div>
-                        {p.advance_amount > 0 && (
-                          <div className="text-xs text-green-600">
-                            Incl. advance
+                        <div className="text-xs font-medium text-gray-600">
+                          {p.payment_method?.replace("_", " ").toUpperCase()}
+                        </div>
+                        {p.received_by && (
+                          <div className="text-[10px] text-gray-400 mt-0.5">
+                            By: {p.received_by}
                           </div>
                         )}
                       </div>
                     </div>
                   ))}
+
                   {fees.payments?.length > 5 && (
-                    <div className="text-center mt-2">
-                      <span className="text-xs text-gray-500">
-                        Showing last 5 payments
-                      </span>
+                    <div className="bg-gray-50 p-2 text-center border-t border-gray-100">
+                      <button className="text-xs text-primary-600 hover:text-primary-800 font-medium">
+                        View All History ({fees.payments.length})
+                      </button>
                     </div>
                   )}
                 </div>

@@ -1,47 +1,81 @@
 import React from "react";
 import { Loader2 } from "lucide-react";
 
+/**
+ * Premium Button Component
+ * Supports multiple variants, sizes, and loading states.
+ */
 const Button = ({
   children,
   onClick,
   type = "button",
-  variant = "maroon",
-  size = "full",
+  variant = "primary", // Default bumped to 'primary' which maps to maroon
+  size = "neutral", // Changed 'full' -> 'neutral' as default, but keeping API flexible
+  className = "",
   disabled = false,
   loading = false,
-  className = "",
+  icon: Icon, // Optional icon
+  ...props
 }) => {
-  
-  const baseClasses = "relative flex items-center justify-center rounded-xl font-semibold transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 active:scale-[0.98]";
+  const baseClasses =
+    "relative inline-flex items-center justify-center font-medium transition-all duration-300 " +
+    "focus:outline-none focus:ring-2 focus:ring-offset-1 disabled:opacity-60 disabled:cursor-not-allowed disabled:active:scale-100 " +
+    "active:scale-[0.98] rounded-xl tracking-wide";
 
-const sizes = {
-  full: "w-full py-3 px-4 text-sm",
-  half: "w-1/2 py-2.5 px-4 text-sm",
-  small: "px-3 py-2 text-xs", // Removed w-fit to let className handle it
-};
+  const sizes = {
+    small: "px-3 py-1.5 text-xs",
+    neutral: "px-5 py-2.5 text-sm",
+    large: "px-6 py-3 text-base",
+    full: "w-full py-3 px-4 text-sm", // Backwards compatibility
+  };
 
   const variants = {
-    primary: "bg-blue-600 text-white hover:bg-blue-700 shadow-lg shadow-blue-600/20 focus:ring-blue-500 disabled:bg-blue-300",
-    secondary: "bg-white text-gray-700 border border-gray-200 hover:bg-gray-50 hover:border-gray-300 focus:ring-gray-200",
-    maroon: "bg-[#800000] text-white hover:bg-[#660000] shadow-lg shadow-red-900/20 focus:ring-[#800000] disabled:bg-[#800000]/50 disabled:shadow-none",
-    ghost: "bg-transparent text-[#800000] hover:bg-red-50 disabled:text-gray-400",
+    // Primary (Maroon) - The main call to action
+    primary:
+      "bg-gradient-to-br from-primary-700 to-primary-800 text-white " +
+      "shadow-lg shadow-primary-900/20 hover:shadow-primary-900/30 " +
+      "hover:to-primary-700 hover:from-primary-600 border border-transparent " +
+      "focus:ring-primary-500",
+
+    // Secondary (Gray/White) - For cancellations or secondary actions
+    secondary:
+      "bg-white text-secondary-700 border border-gray-200 " +
+      "hover:bg-gray-50 hover:text-secondary-900 hover:border-gray-300 " +
+      "shadow-sm focus:ring-secondary-200",
+
+    // Outline (Maroon Border)
+    outline:
+      "bg-transparent border-2 border-primary-700 text-primary-700 " +
+      "hover:bg-primary-50 focus:ring-primary-200",
+
+    // Ghost (Text Only)
+    ghost:
+      "bg-transparent text-primary-700 hover:bg-primary-50 hover:text-primary-800 shadow-none",
+
+    // Danger
+    danger:
+      "bg-red-600 text-white hover:bg-red-700 shadow-md shadow-red-500/20 focus:ring-red-500",
+
+    // Legacy support alias
+    maroon:
+      "bg-gradient-to-br from-primary-700 to-primary-800 text-white shadow-lg shadow-primary-900/20 hover:to-primary-700 hover:from-primary-600 border border-transparent focus:ring-primary-500",
   };
+
+  // Resolve size if 'full' was passed but we want to map it to styling
+  const sizeClass = sizes[size] || sizes.neutral;
+  const variantClass = variants[variant] || variants.primary;
 
   return (
     <button
       type={type}
       onClick={onClick}
       disabled={disabled || loading}
-      className={`${baseClasses} ${sizes[size]} ${variants[variant]} ${className} ${disabled ? 'cursor-not-allowed' : 'cursor-pointer'}`}
+      className={`${baseClasses} ${sizeClass} ${variantClass} ${className}`}
+      {...props}
     >
-      {loading ? (
-        <>
-          <Loader2 className="animate-spin -ml-1 mr-2 h-4 w-4" />
-          Processing...
-        </>
-      ) : (
-        children
-      )}
+      {loading && <Loader2 className="animate-spin -ml-1 mr-2 h-4 w-4" />}
+      {!loading && Icon && <Icon className="mr-2 h-4 w-4" />}
+      {children}
     </button>
   );
 };

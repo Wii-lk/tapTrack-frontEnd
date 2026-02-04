@@ -137,13 +137,25 @@ const AttendanceManagement = () => {
 
   // Effect to load data when view changes
   useEffect(() => {
-    if (currentView === "summary") {
-      fetchSummary();
-    } else if (currentView === "presence") {
-      fetchPresence();
-    } else if (currentView === "history") {
-      fetchHistory(historyFilters, historyPage);
-    }
+    const loadData = () => {
+      if (currentView === "summary") {
+        fetchSummary();
+      } else if (currentView === "presence") {
+        fetchPresence();
+      } else if (currentView === "history") {
+        fetchHistory(historyFilters, historyPage);
+      }
+    };
+
+    loadData();
+
+    // Auto-refresh every 1 minute
+    const intervalId = setInterval(() => {
+      // Create a background refresh (optional: could add a distinct 'background' flag to avoid full loading spinners)
+      loadData();
+    }, 60000); // 1 minute
+
+    return () => clearInterval(intervalId);
   }, [
     currentView,
     fetchSummary,

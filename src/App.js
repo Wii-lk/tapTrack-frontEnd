@@ -30,49 +30,53 @@ import ManageFeesPage from "./pages/ManageFeesPage";
 import FeePaymentForm from "./components/fees/FeePaymentForm";
 // import GlobalLoader from "./components/common/GlobalLoader";
 
+import { ToastProvider } from "./contexts/ToastContext";
+
 function App() {
   const { token } = useAuth();
 
   return (
     /* 🟢 ADDED basename HERE to match your server URL subfolder */
     <Router basename="/PhoenixSystem/tapTrack-FrontEnd">
-      {!token ? (
-        <LoginPage />
-      ) : (
-        <DashboardLayout>
-          <Routes>
-            <Route path="/" element={<Navigate to="/dashboard" replace />} />
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/students" element={<StudentManagement />} />
-            <Route path="/students/:id" element={<StudentDetails />} />
-            <Route path="/teachers" element={<TeacherManagement />} />
-            <Route path="/teachers/:id" element={<TeacherDetails />} />
-            <Route path="/classes" element={<ClassManagement />} />
-            <Route path="/sections" element={<ClassManagement />} />
+      <ToastProvider>
+        {!token ? (
+          <LoginPage />
+        ) : (
+          <DashboardLayout>
+            <Routes>
+              <Route path="/" element={<Navigate to="/dashboard" replace />} />
+              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/students" element={<StudentManagement />} />
+              <Route path="/students/:id" element={<StudentDetails />} />
+              <Route path="/teachers" element={<TeacherManagement />} />
+              <Route path="/teachers/:id" element={<TeacherDetails />} />
+              <Route path="/classes" element={<ClassManagement />} />
+              <Route path="/sections" element={<ClassManagement />} />
 
-            <Route path="/fees" element={<ManageFeesPage />} />
-            <Route
-              path="/fees/collect/:studentId"
-              element={<FeePaymentForm />}
-            />
-            <Route path="/payments" element={<ManageSalaryStaffPage />} />
-            <Route path="/attendance" element={<AttendanceManagement />} />
-            <Route
-              path="/attendance_history"
-              element={<AttendanceHistoryPage />}
-            />
-            <Route path="/leave" element={<LeaveManagementPage />} />
+              <Route path="/fees" element={<ManageFeesPage />} />
+              <Route
+                path="/fees/collect/:studentId"
+                element={<FeePaymentForm />}
+              />
+              <Route path="/payments" element={<ManageSalaryStaffPage />} />
+              <Route path="/attendance" element={<AttendanceManagement />} />
+              <Route
+                path="/attendance_history"
+                element={<AttendanceHistoryPage />}
+              />
+              <Route path="/leave" element={<LeaveManagementPage />} />
 
-            <Route path="/salary/manage" element={<ManageSalaryStaffPage />} />
-            <Route
-              path="/salary/manage/:userId"
-              element={<ManageSalaryPage />}
-            />
-            <Route path="/salary-history" element={<SalaryHistoryPage />} />
-            <Route path="/settings" element={<SystemSettings />} />
-          </Routes>
-        </DashboardLayout>
-      )}
+              <Route path="/salary/manage" element={<ManageSalaryStaffPage />} />
+              <Route
+                path="/salary/manage/:userId"
+                element={<ManageSalaryPage />}
+              />
+              <Route path="/salary-history" element={<SalaryHistoryPage />} />
+              <Route path="/settings" element={<SystemSettings />} />
+            </Routes>
+          </DashboardLayout>
+        )}
+      </ToastProvider>
     </Router>
   );
 }
