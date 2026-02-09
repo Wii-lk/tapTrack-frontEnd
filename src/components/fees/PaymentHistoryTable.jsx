@@ -13,11 +13,24 @@ const PaymentHistoryTable = ({ history, loading, onViewReceipt }) => {
     "Actions",
   ];
 
+  // Helper: Format Currency
   const formatCurrency = (val) =>
     new Intl.NumberFormat("en-LK", {
       style: "currency",
       currency: "LKR",
     }).format(val);
+
+  // Helper: Format Date (Date Only)
+  const formatDate = (dateString) => {
+    if (!dateString) return "N/A";
+    return new Date(dateString).toLocaleDateString("en-GB"); // Results in DD/MM/YYYY
+  };
+
+  // Helper: Truncate Name
+  const truncateName = (name) => {
+    if (!name) return "N/A";
+    return name.length > 30 ? `${name.substring(0, 30)}...` : name;
+  };
 
   // Mobile Payment Card
   const PaymentCard = ({ payment }) => (
@@ -25,12 +38,10 @@ const PaymentHistoryTable = ({ history, loading, onViewReceipt }) => {
       <div className="flex justify-between items-start mb-2">
         <div className="flex flex-col">
           <span className="text-xs text-gray-500">
-            {new Date(payment.payment_date).toLocaleDateString()}
+            {formatDate(payment.payment_date)}
           </span>
           <div className="text-sm font-semibold text-gray-900">
-            {payment.student_name.length > 30
-              ? `${payment.student_name.substring(0, 30)}...`
-              : payment.student_name}
+            {truncateName(payment.student_name)}
           </div>
         </div>
         <div className="text-sm font-semibold text-green-600">
@@ -46,7 +57,7 @@ const PaymentHistoryTable = ({ history, loading, onViewReceipt }) => {
         <div>
           <span className="block text-gray-400">Method</span>
           <span className="capitalize">
-            {payment.payment_method.replace("_", " ")}
+            {payment.payment_method?.replace("_", " ")}
           </span>
         </div>
         <div className="col-span-2">
@@ -73,16 +84,16 @@ const PaymentHistoryTable = ({ history, loading, onViewReceipt }) => {
       <div className="block md:hidden">
         {loading && (
           <div className="text-center py-8">
-            <Loader2
-              size={24}
-              className="mx-auto animate-spin text-orange-600"
-            />
+            <Loader2 size={24} className="mx-auto animate-spin text-orange-600" />
           </div>
         )}
-        {!loading &&
+        {!loading && history && history.length > 0 ? (
           history.map((payment) => (
             <PaymentCard key={payment.id} payment={payment} />
-          ))}
+          ))
+        ) : (
+          !loading && <div className="text-center py-8 text-gray-500">No records found.</div>
+        )}
       </div>
 
       {/* Desktop Table View */}
@@ -102,37 +113,26 @@ const PaymentHistoryTable = ({ history, loading, onViewReceipt }) => {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {loading && (
+              {loading ? (
                 <tr>
-                  <td
-                    colSpan={headers.length}
-                    className="px-6 py-12 text-center"
-                  >
-                    <Loader2
-                      size={24}
-                      className="mx-auto animate-spin text-orange-600"
-                    />
+                  <td colSpan={headers.length} className="px-6 py-12 text-center">
+                    <Loader2 size={24} className="mx-auto animate-spin text-orange-600" />
                   </td>
                 </tr>
-              )}
-
-              {!loading &&
+              ) : history && history.length > 0 ? (
                 history.map((payment) => (
-                  <tr
-                    key={payment.id}
-                    className="hover:bg-gray-50 transition-colors"
-                  >
+                  <tr key={payment.id} className="hover:bg-gray-50 transition-colors">
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {payment.payment_date}
+                      {formatDate(payment.payment_date)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-mono text-gray-600">
                       {payment.id}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                      {payment.student_name}
+                      {truncateName(payment.student_name)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 capitalize">
-                      {payment.payment_method.replace("_", " ")}
+                      {payment.payment_method?.replace("_", " ")}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-green-600">
                       {formatCurrency(payment.amount)}
@@ -151,7 +151,14 @@ const PaymentHistoryTable = ({ history, loading, onViewReceipt }) => {
                       </Button>
                     </td>
                   </tr>
-                ))}
+                ))
+              ) : (
+                <tr>
+                  <td colSpan={headers.length} className="px-6 py-8 text-center text-gray-500">
+                    No payment history available.
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>
