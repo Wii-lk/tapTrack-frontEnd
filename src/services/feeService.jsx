@@ -136,7 +136,7 @@ export const feeService = {
 
     try {
       const token = localStorage.getItem("token");
-      const queryParams = new URLSearchParams({ page, per_page: 10, ...filters });
+      const queryParams = new URLSearchParams({ page, per_page: 1000, ...filters });
       const response = await fetch(`${API_BASE_URL}/fees/payment-history?${queryParams}`, {
         method: 'GET',
         headers: { Accept: 'application/json', Authorization: `Bearer ${token}` },
