@@ -500,7 +500,7 @@ export const attendanceService = {
       const token = localStorage.getItem("token");
       if (!token) throw new Error("No auth token found. Please log in.");
 
-      const queryParams = new URLSearchParams({ page, per_page: 10 });
+      const queryParams = new URLSearchParams({ page, per_page: 1000 });
       Object.keys(filters).forEach((key) => {
         if (filters[key]) {
           queryParams.append(key, filters[key]);
