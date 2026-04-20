@@ -7,7 +7,7 @@ import Button from '../common/Button';
  */
 const StaffSalaryListTable = ({ staffList = [], loading, onGenerateClick }) => {
   // 🟢 UPDATED Header: 'Employee ID' instead of 'Staff ID'
-  const headers = ['Employee ID', 'Name', 'Role', 'Basic Salary', 'Actions'];
+  const headers = ['Employee ID', 'Name', 'Email', 'Basic Salary', 'Actions'];
 
   const formatCurrency = (amount) => {
     if (amount === null || amount === undefined) return 'N/A';
@@ -21,13 +21,13 @@ const StaffSalaryListTable = ({ staffList = [], loading, onGenerateClick }) => {
     <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-100 mb-3">
         <div className="flex justify-between items-start mb-2">
             <div>
-                <h4 className="text-sm font-semibold text-gray-900">{staff.name}</h4>
+                <h4 className="text-sm font-semibold text-gray-900">{staff.first_name} {staff.last_name}</h4>
                 <div className="text-xs text-gray-500 font-mono mt-0.5">
                     {staff.employee_no || staff.unique_no || staff.user_id}
                 </div>
             </div>
             <span className="bg-blue-50 text-blue-700 px-2 py-0.5 rounded text-xs font-medium border border-blue-100">
-                {staff.role || 'Staff'}
+                {staff.email || 'N/A'}
             </span>
         </div>
         

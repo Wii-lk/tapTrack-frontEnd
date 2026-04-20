@@ -99,7 +99,6 @@ export const salaryService = {
       });
 
       const res = await response.json();
-
       console.log("🔹 API RESPONSE:", res);
 
       if (!response.ok) throw new Error(res.message || 'Failed to fetch staff list');
