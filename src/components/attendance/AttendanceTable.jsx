@@ -94,7 +94,7 @@ const AttendanceTable = ({ records, loading, userType }) => {
           <div>
             <h4 className="text-sm font-semibold text-gray-900">{user.name}</h4>
             <div className="text-xs text-gray-500 mt-0.5">
-              {user.unique_no || user.index_no}
+              {user.employee_no || user.unique_no || user.index_no}
             </div>
           </div>
           <span
@@ -139,7 +139,7 @@ const AttendanceTable = ({ records, loading, userType }) => {
     return (
       <tr key={record.id} className="hover:bg-gray-50">
         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-          {user.unique_no || user.index_no}
+          {user.employee_no || user.unique_no || user.index_no}
         </td>
         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
           {user.name}

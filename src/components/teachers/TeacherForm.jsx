@@ -304,17 +304,6 @@ const TeacherForm = ({ teacher, onSubmit, onCancel, loading }) => {
           </div>
         </div>
 
-        {!!teacher && (
-          <Input
-            label="Unique ID (System/RFID)"
-            name="unique_no"
-            value={formData.unique_no}
-            onChange={handleChange}
-            disabled={true}
-            icon={Hash}
-          />
-        )}
-
         <Input
           label="Email Address *"
           name="email"

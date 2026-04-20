@@ -184,9 +184,8 @@ const TeacherDetails = () => {
                 <p className="font-medium">{teacher.designation || 'Not specified'}</p>
               </div>
               <div>
-                <p className="text-sm text-gray-500">Unique ID</p>
-                {/* (unique_no was already correct) */}
-                <p className="font-medium">{teacher.unique_no}</p>
+                <p className="text-sm text-gray-500">Employee No</p>
+                <p className="font-medium">{teacher.employee_no || teacher.unique_no || "N/A"}</p>
               </div>
               <div>
                 <p className="text-sm text-gray-500">Basic Salary</p>

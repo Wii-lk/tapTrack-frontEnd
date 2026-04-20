@@ -15,6 +15,7 @@ const MOCK_TEACHERS = [
     phone_no: "+94771234567",
     position: "Math Teacher",
     is_active: true,
+    employee_no: "TPIS-001",
     unique_no: "RFID10001",
     basic_salary: 50000.0,
     date_of_birth: "1985-01-01",
@@ -31,6 +32,7 @@ const MOCK_TEACHERS = [
     phone_no: "+94772234567",
     position: "English Teacher",
     is_active: true,
+    employee_no: "TPIS-002",
     unique_no: "RFID10002",
     basic_salary: 55000.0,
     date_of_birth: "1988-03-12",
@@ -47,6 +49,7 @@ const MOCK_TEACHERS = [
     phone_no: "+94773234567",
     position: "Science Teacher",
     is_active: false,
+    employee_no: "TPIS-003",
     unique_no: "RFID10003",
     basic_salary: 48000.0,
     date_of_birth: "1990-06-20",
@@ -75,7 +78,7 @@ const normalizeStaffToTeacher = (staff) => {
 
     // Pass through fields
     unique_no: staff.unique_no,
-    employee_no: staff.employee_no, // <--- ADD THIS LINE
+    employee_no: staff.employee_no || staff.unique_no,
     type: staff.type,
     basic_salary: staff.basic_salary,
     date_of_birth: staff.date_of_birth,
