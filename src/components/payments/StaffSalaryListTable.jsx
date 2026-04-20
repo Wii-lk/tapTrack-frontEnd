@@ -7,7 +7,7 @@ import Button from '../common/Button';
  */
 const StaffSalaryListTable = ({ staffList = [], loading, onGenerateClick }) => {
   // 🟢 UPDATED Header: 'Employee ID' instead of 'Staff ID'
-  const headers = ['Employee ID', 'Name', 'Email', 'Basic Salary', 'Actions'];
+  const headers = ['Employee ID', 'Name', 'Role', 'Basic Salary', 'Actions'];
 
   const formatCurrency = (amount) => {
     if (amount === null || amount === undefined) return 'N/A';
@@ -121,7 +121,7 @@ const StaffSalaryListTable = ({ staffList = [], loading, onGenerateClick }) => {
                 </td>
 
                 <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="text-sm font-medium text-gray-900">{staff.name}</div>
+                  <div className="text-sm font-medium text-gray-900">{staff.first_name} {staff.last_name}</div>
                 </td>
 
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
