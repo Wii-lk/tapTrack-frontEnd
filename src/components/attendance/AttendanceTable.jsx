@@ -24,7 +24,7 @@ const AttendanceTable = ({ records, loading, userType }) => {
     }
   };
 
-  // Helper to format time strings (e.g., "07:50:00" -> "07:50 AM") - Times are in IST (UTC+5:30)
+  // Helper to format time strings (e.g., "07:50:00" -> "07:50 AM")
   const formatTime = (timeString) => {
     if (!timeString) return "--";
     try {
@@ -34,7 +34,7 @@ const AttendanceTable = ({ records, loading, userType }) => {
       const ampm = h >= 12 ? "PM" : "AM";
       h = h % 12;
       h = h ? h : 12; // '0' hour should be '12'
-      return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")} ${ampm} IST`;
+      return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")} ${ampm}`;
     } catch (e) {
       return timeString; // Return original if format is unexpected
     }
