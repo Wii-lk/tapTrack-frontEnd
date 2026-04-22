@@ -115,14 +115,22 @@ export const salaryService = {
         rawList = res.data;
       }
 
-      const adaptedList = rawList.map(item => ({
-        user_id: item.user_id || item.id,
-        employee_no: item.employee_no || item.unique_no,
+      const adaptedList = rawList.map(item => {
+        const firstName = item.first_name || item.user?.first_name || '';
+        const lastName = item.last_name || item.user?.last_name || '';
+        const fullName = `${firstName} ${lastName}`.trim();
 
-        name: (item.user && item.user.name) ? item.user.name : (item.name || item.email),
-        role: item.position || item.role || 'N/A',
-        basic_salary: parseFloat(item.basic_salary || 0)
-      }));
+        return {
+          user_id: item.user_id || item.id,
+          employee_no: item.employee_no || item.unique_no,
+          first_name: firstName,
+          last_name: lastName,
+          name: fullName || item.user?.name || item.name || 'N/A',
+          email: item.email || item.user?.email || 'N/A',
+          role: item.position || item.role || 'N/A',
+          basic_salary: parseFloat(item.basic_salary || 0)
+        };
+      });
 
       return { success: true, data: adaptedList };
 

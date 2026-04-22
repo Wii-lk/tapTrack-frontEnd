@@ -7,7 +7,12 @@ import Button from '../common/Button';
  */
 const StaffSalaryListTable = ({ staffList = [], loading, onGenerateClick }) => {
   // 🟢 UPDATED Header: 'Employee ID' instead of 'Staff ID'
-  const headers = ['Employee ID', 'Name', 'Role', 'Basic Salary', 'Actions'];
+  const headers = ['Employee ID', 'Name', 'Email', 'Basic Salary', 'Actions'];
+
+  const getFullName = (staff) => {
+    const fullName = `${staff?.first_name || ''} ${staff?.last_name || ''}`.trim();
+    return fullName || staff?.name || 'N/A';
+  };
 
   const formatCurrency = (amount) => {
     if (amount === null || amount === undefined) return 'N/A';
@@ -21,7 +26,7 @@ const StaffSalaryListTable = ({ staffList = [], loading, onGenerateClick }) => {
     <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-100 mb-3">
         <div className="flex justify-between items-start mb-2">
             <div>
-                <h4 className="text-sm font-semibold text-gray-900">{staff.first_name} {staff.last_name}</h4>
+                <h4 className="text-sm font-semibold text-gray-900">{getFullName(staff)}</h4>
                 <div className="text-xs text-gray-500 font-mono mt-0.5">
                     {staff.employee_no || staff.unique_no || staff.user_id}
                 </div>
@@ -121,12 +126,12 @@ const StaffSalaryListTable = ({ staffList = [], loading, onGenerateClick }) => {
                 </td>
 
                 <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="text-sm font-medium text-gray-900">{staff.first_name} {staff.last_name}</div>
+                  <div className="text-sm font-medium text-gray-900">{getFullName(staff)}</div>
                 </td>
 
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                   <span className="bg-blue-50 text-blue-700 px-2 py-0.5 rounded text-xs font-medium border border-blue-100">
-                    {staff.role || 'Staff'}
+                    {staff.email || 'N/A'}
                   </span>
                 </td>
 
@@ -139,7 +144,7 @@ const StaffSalaryListTable = ({ staffList = [], loading, onGenerateClick }) => {
                     variant="outline" 
                     size="small"
                     onClick={() => onGenerateClick(staff.user_id)}
-                    aria-label={`Generate salary for ${staff.name}`}
+                    aria-label={`Generate salary for ${getFullName(staff)}`}
                     className="hover:border-green-500 hover:text-green-600 hover:bg-green-50 transition-colors"
                   >
                     <Calculator size={14} className="mr-2" />
