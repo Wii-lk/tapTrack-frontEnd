@@ -8,6 +8,8 @@ import HistoryTable from '../components/attendance/HistoryTable';
 // Import the modals
 import ManualEntryModal from '../components/attendance/ManualEntryModal';
 import DeleteAttendanceModal from '../components/attendance/DeleteAttendanceModal';
+import ExcelJS from 'exceljs';
+import { saveAs } from 'file-saver';
 
 /**
  * New Standalone Page for Attendance History
@@ -22,6 +24,7 @@ const AttendanceHistoryPage = () => {
   // "History" State
   const [historyRecords, setHistoryRecords] = useState([]);
   const [teacherReport, setTeacherReport] = useState([]); // 🟢 NEW: State for Excel export
+  const [summary, setSummary] = useState(null);
   const [historyPagination, setHistoryPagination] = useState(null);
   const [historyFilters, setHistoryFilters] = useState({});
   const [historyPage, setHistoryPage] = useState(1);
@@ -44,6 +47,7 @@ const AttendanceHistoryPage = () => {
         setHistoryRecords(res.data.attendance);
         setHistoryPagination(res.data.pagination);
         setTeacherReport(res.data.teacher_report || []); // 🟢 NEW: Save the report data
+        setSummary(res.data.summary); // 🟢 NEW: Save the summary data
       }
     } catch (err) { setError(err.message); }
     finally { setLoading(false); }
@@ -65,41 +69,87 @@ const AttendanceHistoryPage = () => {
     setHistoryPage(page);
   };
 
-  const handleExport = () => {
+  const handleExport = async () => {
     if (!teacherReport || teacherReport.length === 0) {
       alert('No data to export. Please try searching again.');
       return;
     }
 
-    // 1. Updated headers for the summary view
-    const headers = ['Employee ID', 'Name', 'Total Days', 'Days Present', 'Days Absent', 'Days Late'];
+    const fromDate = summary?.date_range?.from || 'Start';
+    const toDate = summary?.date_range?.to || 'End';
 
-    // 2. Map the teacher report data to match the columns
-    const csvRows = teacherReport.map(r => [
-      r.employee_id || r.user_id, // Uses unique_no, falls back to DB id if null
-      `"${r.teacher_name}"`,    // Wrapped in quotes in case a name has a comma
-      r.total_days,
-      r.present_days,
-      r.absent_days,
-      r.late_days
-    ].join(','));
+    // 1. Initialize Workbook and Worksheet
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet('Attendance Summary');
 
-    // 3. Combine headers and rows
-    const csvContent = [headers.join(','), ...csvRows].join('\n');
+    // 2. Add and Style the Title Row
+    worksheet.mergeCells('A1:G1');
+    const titleCell = worksheet.getCell('A1');
+    titleCell.value = `Attendance Summary Report: ${fromDate} to ${toDate}`;
+    titleCell.font = { name: 'Arial', size: 14, bold: true, color: { argb: 'FFFFFFFF' } }; // White text
+    titleCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF2563EB' } }; // Tailwind Blue-600
+    titleCell.alignment = { vertical: 'middle', horizontal: 'center' };
+    worksheet.getRow(1).height = 30;
 
-    // 4. Create and trigger download
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
-    const url = URL.createObjectURL(blob);
-    link.setAttribute('href', url);
+    // 3. Empty Row for spacing
+    worksheet.addRow([]);
 
-    // Updated filename to reflect it's a summary
-    link.setAttribute('download', `attendance_summary_${new Date().toISOString().split('T')[0]}.csv`);
-    link.style.visibility = 'hidden';
+    // 4. Add and Style Headers
+    const headers = ['Employee ID', 'Name', 'Total Days', 'Days Present', 'Days Absent', 'Days Late', 'Half Days'];
+    const headerRow = worksheet.addRow(headers);
 
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    headerRow.eachCell((cell) => {
+      cell.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+      cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF475569' } }; // Tailwind Slate-600
+      cell.alignment = { vertical: 'middle', horizontal: 'center' };
+      cell.border = {
+        top: { style: 'thin' }, left: { style: 'thin' },
+        bottom: { style: 'thin' }, right: { style: 'thin' }
+      };
+    });
+
+    // 5. Map and Add Data Rows
+    teacherReport.forEach((r) => {
+      const row = worksheet.addRow([
+        r.employee_id || r.unique_no || r.user_id,
+        r.teacher_name,
+        r.total_days,
+        r.present_days,
+        r.absent_days,
+        r.late_days,
+        r.half_days
+      ]);
+
+      // Add borders and alignment to data cells
+      row.eachCell((cell, colNumber) => {
+        cell.border = {
+          top: { style: 'thin', color: { argb: 'FFCBD5E1' } },
+          left: { style: 'thin', color: { argb: 'FFCBD5E1' } },
+          bottom: { style: 'thin', color: { argb: 'FFCBD5E1' } },
+          right: { style: 'thin', color: { argb: 'FFCBD5E1' } }
+        };
+        // Align numbers to center, names to left
+        cell.alignment = { vertical: 'middle', horizontal: colNumber === 2 ? 'left' : 'center' };
+      });
+    });
+
+    // 6. Set Column Widths so data isn't squished
+    worksheet.columns = [
+      { width: 25 }, // Employee ID
+      { width: 35 }, // Name
+      { width: 15 }, // Total Days
+      { width: 15 }, // Days Present
+      { width: 15 }, // Days Absent
+      { width: 15 }, // Days Late
+      { width: 15 }, // Half Days
+    ];
+
+    // 7. Generate Excel File and Trigger Download
+    const buffer = await workbook.xlsx.writeBuffer();
+    const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    const fileName = `attendance_summary_${fromDate}_to_${toDate}.xlsx`; // Note the .xlsx extension!
+
+    saveAs(blob, fileName);
   };
 
   // --- New Handlers for Edit/Delete ---
@@ -154,7 +204,15 @@ const AttendanceHistoryPage = () => {
         <Clock size={28} className="text-gray-700" />
         <div>
           <h2 className="text-2xl font-bold text-gray-800">Attendance History & Reports</h2>
-          <p className="text-gray-600 mt-1">Search and view past attendance records.</p>
+          <p className="text-gray-600 mt-1 flex items-center gap-2">
+            Search and view past attendance records.
+            {/* 🟢 NEW: Date Range Display Chip */}
+            {summary?.date_range?.from && summary?.date_range?.to && (
+              <span className="text-xs font-semibold text-blue-700 bg-blue-100 px-2 py-1 rounded-full">
+                Data found from: {summary.date_range.from} to {summary.date_range.to}
+              </span>
+            )}
+          </p>
         </div>
       </div>
 
