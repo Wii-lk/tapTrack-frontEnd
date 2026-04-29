@@ -21,6 +21,7 @@ const AttendanceHistoryPage = () => {
 
   // "History" State
   const [historyRecords, setHistoryRecords] = useState([]);
+  const [teacherReport, setTeacherReport] = useState([]); // 🟢 NEW: State for Excel export
   const [historyPagination, setHistoryPagination] = useState(null);
   const [historyFilters, setHistoryFilters] = useState({});
   const [historyPage, setHistoryPage] = useState(1);
@@ -30,7 +31,7 @@ const AttendanceHistoryPage = () => {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [selectedRecord, setSelectedRecord] = useState(null);
   const [modalLoading, setModalLoading] = useState(false);
-  
+
   // --- DATA FETCHING ---
 
   // Fetch History
@@ -42,8 +43,9 @@ const AttendanceHistoryPage = () => {
       if (res.success) {
         setHistoryRecords(res.data.attendance);
         setHistoryPagination(res.data.pagination);
+        setTeacherReport(res.data.teacher_report || []); // 🟢 NEW: Save the report data
       }
-    } catch (err) { setError(err.message); } 
+    } catch (err) { setError(err.message); }
     finally { setLoading(false); }
   }, []);
 
@@ -64,20 +66,37 @@ const AttendanceHistoryPage = () => {
   };
 
   const handleExport = () => {
-    // (Your existing export logic here)
-    if (historyRecords.length === 0) {
-      alert('No data to export.');
+    if (!teacherReport || teacherReport.length === 0) {
+      alert('No data to export. Please try searching again.');
       return;
     }
-    const headers = ['UserID', 'UserName', 'Date', 'Status', 'CheckInTime', 'CheckOutTime', 'Notes'];
-    const csvRows = historyRecords.map(r => [r.user_id, `"${r.user_name}"`, r.date, r.status, r.check_in_time || '', r.check_out_time || '', `"${r.notes || ''}"`].join(','));
+
+    // 1. Updated headers for the summary view
+    const headers = ['Employee ID', 'Name', 'Total Days', 'Days Present', 'Days Absent', 'Days Late'];
+
+    // 2. Map the teacher report data to match the columns
+    const csvRows = teacherReport.map(r => [
+      r.employee_id || r.user_id, // Uses unique_no, falls back to DB id if null
+      `"${r.teacher_name}"`,    // Wrapped in quotes in case a name has a comma
+      r.total_days,
+      r.present_days,
+      r.absent_days,
+      r.late_days
+    ].join(','));
+
+    // 3. Combine headers and rows
     const csvContent = [headers.join(','), ...csvRows].join('\n');
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-IS-8859-1;' });
+
+    // 4. Create and trigger download
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
     const url = URL.createObjectURL(blob);
     link.setAttribute('href', url);
-    link.setAttribute('download', 'attendance_history.csv');
+
+    // Updated filename to reflect it's a summary
+    link.setAttribute('download', `attendance_summary_${new Date().toISOString().split('T')[0]}.csv`);
     link.style.visibility = 'hidden';
+
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -127,7 +146,7 @@ const AttendanceHistoryPage = () => {
       setModalLoading(false);
     }
   };
-  
+
   return (
     <div className="space-y-6 p-4 md:p-6 bg-gray-50 min-h-screen">
       {/* Header */}
@@ -141,16 +160,13 @@ const AttendanceHistoryPage = () => {
 
       {error && <Alert type="error" message={error} onClose={() => setError('')} />}
       {success && <Alert type="success" message={success} onClose={() => setSuccess('')} />}
-      
+
       {/* Render the history view */}
       <div className="space-y-6">
-        <HistoryFilters 
-          onSearch={handleSearch} 
-          loading={loading} 
-          onExport={handleExport} 
-        />
-        <HistoryTable 
-          records={historyRecords} 
+        {/* 🟢 FIXED: Changed isLoading to loading */}
+        <HistoryFilters onSearch={handleSearch} loading={loading} onExport={handleExport} />
+        <HistoryTable
+          records={historyRecords}
           loading={loading}
           onEdit={handleEditClick}
           onDelete={handleDeleteClick}
@@ -169,7 +185,7 @@ const AttendanceHistoryPage = () => {
         isOpen={isEditModalOpen}
         onClose={handleModalClose}
         onSave={handleEditSave}
-        recordToEdit={selectedRecord} 
+        recordToEdit={selectedRecord}
       />
 
       <DeleteAttendanceModal
