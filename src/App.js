@@ -37,7 +37,7 @@ function App() {
 
   return (
     /* 🟢 ADDED basename HERE to match your server URL subfolder */
-    <Router basename="/PhoenixSystem/tapTrack-FrontEnd">
+    <Router basename="/">
       <ToastProvider>
         {!token ? (
           <LoginPage />
