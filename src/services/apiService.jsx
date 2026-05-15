@@ -1,4 +1,4 @@
-const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || '/api';
+const API_BASE_URL = "http://phoenixedubackend.dpdns.org/api";
 
 const TEMP_CREDENTIALS = {
   username: 'admin',

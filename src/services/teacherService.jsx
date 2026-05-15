@@ -1,4 +1,4 @@
-const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
+const API_BASE_URL = "http://phoenixedubackend.dpdns.org/api";
 // const API_BASE_URL = "http://localhost:8000/api";
 
 // Set to true to use mock data instead of real API
