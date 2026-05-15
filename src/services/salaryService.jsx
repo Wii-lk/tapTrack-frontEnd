@@ -5,7 +5,7 @@
  */
 
 // Base URL for your API
-const API_BASE_URL = "https://phoenixedubackend.dpdns.org/api";
+const API_BASE_URL = "/api";
 // const API_BASE_URL = "http://localhost:8000/api";
 
 // Set to true to use mock data

@@ -1,1 +1,1 @@
-export const API_BASE_URL = "https://phoenixedubackend.dpdns.org/api";
+export const API_BASE_URL = "/api";
