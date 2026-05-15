@@ -1,7 +1,7 @@
 import { loaderController } from './loaderController';
 
 // Base URL for your API
-const API_BASE_URL = "http://phoenixedubackend.dpdns.org/api";
+const API_BASE_URL = "https://phoenixedubackend.dpdns.org/api";
 
 /**
  * Universal API Wrapper that handles:

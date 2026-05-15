@@ -3,7 +3,7 @@
  * Handles Dashboard Summary and Report Data
  */
 
-const API_BASE_URL = "http://phoenixedubackend.dpdns.org/api";
+const API_BASE_URL = "https://phoenixedubackend.dpdns.org/api";
 // const API_BASE_URL = "http://localhost:8000/api";
 export const USE_MOCK_DATA = false; 
 

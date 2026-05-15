@@ -1,4 +1,4 @@
-const API_BASE_URL = "http://phoenixedubackend.dpdns.org/api";
+const API_BASE_URL = "https://phoenixedubackend.dpdns.org/api";
 
 const TEMP_CREDENTIALS = {
   username: 'admin',
