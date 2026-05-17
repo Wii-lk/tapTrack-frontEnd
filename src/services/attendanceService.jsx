@@ -8,7 +8,7 @@
 
 // Base URL for your API.
 // IMPORTANT: Replace 'http://localhost:8000' with your actual API domain.
-import { API_BASE_URL } from "../config/api";
+const API_BASE_URL = import.meta.env.VITE_API_URL || "/api";
 
 // const API_BASE_URL = "http://localhost:8000/api";
 // --- SERVICE CONFIGURATION ---

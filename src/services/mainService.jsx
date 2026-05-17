@@ -1,8 +1,7 @@
 import { loaderController } from './loaderController';
 
 // Base URL for your API
-const API_BASE_URL = "/api";
-
+const API_BASE_URL = import.meta.env.VITE_API_URL || "/api";
 /**
  * Universal API Wrapper that handles:
  * 1. Global Loading State

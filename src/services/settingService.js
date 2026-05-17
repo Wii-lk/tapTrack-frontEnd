@@ -3,7 +3,7 @@
  * Manages System Configuration and Salary Rules
  */
 
-const API_BASE_URL = "/api";
+const API_BASE_URL = import.meta.env.VITE_API_URL || "/api";
 // const API_BASE_URL = "http://localhost:8000/api";
 export const USE_MOCK_DATA = false; // Toggle for backend integration
 
